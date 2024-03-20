@@ -34,7 +34,7 @@ const UserSchema = new mongoose_1.Schema({
     isHiring: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
-    userType: { type: String, enum: Object.values(userTypes_1.UserType), required: true },
+    userType: { type: String, enum: Object.values(userTypes_1.UserType) },
     profile: {
         type: {
             about: { type: String },
@@ -45,7 +45,6 @@ const UserSchema = new mongoose_1.Schema({
             resume: { type: String },
             gender: { type: String },
         },
-        default: {},
     },
     companyProfile: {
         type: {
@@ -60,8 +59,7 @@ const UserSchema = new mongoose_1.Schema({
     savedJobs: [{ type: mongoose_1.default.Types.ObjectId, ref: 'Job' }],
     isActive: { type: Boolean, default: true },
     profileImageUrl: { type: String },
-    timestamp: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 // Create and export the User model
 const User = mongoose_1.default.model('User', UserSchema);
 exports.default = User;
