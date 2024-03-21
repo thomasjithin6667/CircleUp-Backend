@@ -17,6 +17,7 @@ declare module 'express-session' {
     userDetails?: { username: string, email: string, password: string };
     otp?: string;
     otpGeneratedTime?:number;
+    email?:string;
   }
 }
 
