@@ -11,6 +11,8 @@ const UserSchema: Schema<IUser> = new Schema({
   isHiring: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   isOnline: { type: Boolean, default: false },
+  isGoogle:{type:Boolean,default:false},
+  isFacebook:{type:Boolean,default:false},
   userType: { type: String, enum: Object.values(UserType)},
   profile: {
     type: {
@@ -40,6 +42,5 @@ const UserSchema: Schema<IUser> = new Schema({
   
 },{timestamps:true});
 
-// Create and export the User model
 const User = mongoose.model<IUser>('User', UserSchema);
 export default User;

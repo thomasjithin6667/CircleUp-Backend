@@ -10,10 +10,12 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const errorMiddleware_1 = __importDefault(require("./middlewares/errorMiddleware"));
 const express_session_1 = __importDefault(require("express-session"));
+const cors_1 = __importDefault(require("cors"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-(0, db_1.default)();
-const port = process.env.PORT || 3000;
+app.use((0, cors_1.default)({
+    origin: 'http://localhost:5173'
+}));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 const sessionSecret = process.env.SESSION_SECRET || 'default_secret_key';
@@ -28,6 +30,8 @@ app.use((0, express_session_1.default)({
 app.use('/api/', userRoutes_1.default);
 app.use('/api/admin', adminRoutes_1.default);
 app.use(errorMiddleware_1.default);
+(0, db_1.default)();
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });

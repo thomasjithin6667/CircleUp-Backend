@@ -1,27 +1,30 @@
 import nodemailer from "nodemailer";
 import { Request } from "express";
-import CustomSessionData from "./customSession";
 import { SessionData } from "express-session";
 
 const sendVerifyMail = async (req: Request, name: string, email: string) => {
   try {
-    const sessionData: CustomSessionData = req.session!;
+    const sessionData = req.session!;
     const otp = sessionData!.otp; 
-    console.log(otp);
     sessionData!.otpGeneratedTime = Date.now();
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
       requireTLS: true,
+      tls: {
+        rejectUnauthorized: false,
+      },
       auth: {
         user: "circleupindia@gmail.com",
         pass: "yonq znss qruc qrjh",
       },
     });
 
+
+    
     const mailOptions: nodemailer.SendMailOptions = {
-      from: "neganishere73@gmail.com",
+      from: "circleupindia@gmail.com",
       to: email,
       subject: "For verification purpose",
       html: `<html lang="en">

@@ -48,6 +48,8 @@ export interface IUser extends Document {
   password: string;
   isHiring: boolean;
   isBlocked: boolean;
+  isGoogle:boolean;
+  isFacebook:boolean;
   isOnline: boolean;
   userType: UserType;
   profile: Profile;

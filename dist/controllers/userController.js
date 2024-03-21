@@ -17,8 +17,8 @@ const express_async_handler_1 = __importDefault(require("express-async-handler")
 const userModel_1 = __importDefault(require("../models/user/userModel"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
-const otp_generator_1 = __importDefault(require("otp-generator"));
 const sendVerifyMail_1 = __importDefault(require("../utils/sendVerifyMail"));
+const speakeasy_1 = __importDefault(require("speakeasy"));
 //Controller for User Registration
 exports.registerUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, email, password } = req.body;
@@ -31,7 +31,10 @@ exports.registerUser = (0, express_async_handler_1.default)((req, res) => __awai
         res.status(400);
         throw new Error("User already exists");
     }
-    const otp = otp_generator_1.default.generate(6);
+    const otp = speakeasy_1.default.totp({
+        secret: speakeasy_1.default.generateSecret({ length: 20 }).base32,
+        digits: 4,
+    });
     const sessionData = req.session;
     sessionData.userDetails = { username, email, password };
     sessionData.otp = otp;
