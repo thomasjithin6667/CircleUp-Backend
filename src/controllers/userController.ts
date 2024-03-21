@@ -133,6 +133,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   } else {
     res.status(400);
     throw new Error("Invalid Credentials");
+    
   }
 });
 
@@ -151,7 +152,7 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
         return;
       }
 
-      if (userExist.isGoogle) {
+      if (userExist) {
         res.json({
           message: "Login Successful",
           _id: userExist.id,
