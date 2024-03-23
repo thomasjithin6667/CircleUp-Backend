@@ -4,7 +4,8 @@ import connectDB from "./config/db";
 import userRoutes from "./routes/userRoutes"
 import adminRoutes from "./routes/adminRoutes"
 import errorHandler from './middlewares/errorMiddleware';
-import session, { SessionOptions,MemoryStore,SessionData } from "express-session";
+import session from "express-session";
+import postRoutes from './routes/postRoutes';
 import cors from 'cors';
 
 dotenv.config();
@@ -42,6 +43,7 @@ app.use(session({
 }));
 app.use('/api/',userRoutes);
 app.use('/api/admin',adminRoutes);
+app.use('/api/post',postRoutes);
 app.use(errorHandler);
 
 connectDB()

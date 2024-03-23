@@ -9,7 +9,10 @@ import bcrypt from "bcryptjs";
 import User from "../models/user/userModel";
 
 
-// ADMIN LOGIN
+
+// @desc    Admin Login
+// @route   ADMIN /Admin/login
+// @access  Public
 
 export const Login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -33,7 +36,10 @@ export const Login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 
-// GET USERS
+
+// @desc    Get all users
+// @route   ADMIN /admin/get-users
+// @access  Public
 
 export const getUsers = asyncHandler(async (req: Request, res: Response) => {
     const users = await User.find({});
@@ -46,7 +52,10 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
     }
   });
 
-//   BLOCK USERS
+
+// @desc    Block Users
+// @route   ADMIN /admin/block-user
+// @access  Public
 
   export const userBlock = asyncHandler(async (req: Request, res: Response) => {
     const userId: string = req.body.userId; 
