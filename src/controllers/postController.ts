@@ -43,29 +43,53 @@ export const getPost = asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json(posts);
   });
 
-// @desc    Update Post
+
+
+
+  // @desc    Get User Posts
+// @route   get /post/get-post
+// @access  Public
+
+export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.body.userId;
+
+  const posts = await Post.find({userId:id, isBlocked: false }).populate({
+    path: 'userId',
+    select: 'username profileImageUrl'
+  }).sort({date:-1});
+  res.status(200).json(posts);
+});
+
+// @desc    Edit Post
 // @route   POST /post/update-post
 // @access  Public
 
-export const updatePost = asyncHandler(async (req: Request, res: Response) => {
-  const postId = req.body.postId;
-  const { userId, imageUrl, description, hideComment, hideLikes } = req.body;
+export const editPost = asyncHandler(async (req: Request, res: Response) => {
+  
+  const {userId,postId,title, description, hideComment, hideLikes } = req.body;
   const post = await Post.findById(postId);
-
   if (!post) {
     res.status(400);
     throw new Error("Post cannot be found");
   }
 
-  if (userId) post.userId = userId;
-  if (imageUrl) post.imageUrl = imageUrl;
+  if (title) post.title = title;
   if (description) post.description = description;
   if (hideComment !== undefined) post.hideComment = hideComment;
   if (hideLikes !== undefined) post.hideLikes = hideLikes;
 
   await post.save();
+  
+  const posts = await Post.find({userId:userId, isBlocked: false }).populate({
+    path: 'userId',
+    select: 'username profileImageUrl'
+  }).sort({date:-1});
+  res.status(200).json(posts);
 
-  res.status(200).json({ message: "Post Updated Successfully" });
+  
+  
+
+  
 });
 
 
