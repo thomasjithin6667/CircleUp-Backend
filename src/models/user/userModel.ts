@@ -38,7 +38,7 @@ const UserSchema: Schema<IUser> = new Schema({
   savedPosts: [{ type: mongoose.Types.ObjectId, ref: 'Post' }],
   savedJobs: [{ type: mongoose.Types.ObjectId, ref: 'Job' }],
   isActive: { type: Boolean, default: true },
-  profileImageUrl: { type: String },
+  profileImageUrl: { type: String ,default:'./src/assets/default_user_profile.png'},
   
 },{timestamps:true});
 

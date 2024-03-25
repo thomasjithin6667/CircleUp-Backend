@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import { registerUser,verifyOTP ,loginUser ,resendOtp, googleAuth,forgotOtp,forgotPassword,resetPassword} from '../controllers/userController';
+import { protect } from '../middlewares/auth';
 const router = express.Router()
 
 router.get('/',(req:Request,res:Response)=>{

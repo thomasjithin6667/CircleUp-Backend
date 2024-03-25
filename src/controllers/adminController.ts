@@ -129,8 +129,12 @@ export const postBlock = asyncHandler(async (req: Request, res: Response) => {
 // @access  Public
 
 export const addJobCategory = asyncHandler(async (req: Request, res: Response) => {
+   console.log("Reached here");
+   
   const { jobCategory} = req.body;
-  const existingJobCategory= await JobCategory.find({ jobCategory});
+  console.log(jobCategory);
+  
+  const existingJobCategory= await JobCategory.find({jobCategory});
   if (existingJobCategory.length > 0) {
     res.status(404);
     throw new Error("Job category Already Exist");

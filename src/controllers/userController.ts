@@ -69,6 +69,13 @@ console.log(storedOTP);
     res.status(400);
     throw new Error("Invalid OTP");
   }
+  const otpGeneratedTime = sessionData.otpGeneratedTime || 0;
+  const currentTime = Date.now();
+  const otpExpirationTime = 60 * 1000; 
+  if (currentTime - otpGeneratedTime > otpExpirationTime) {
+    res.status(400);
+    throw new Error("OTP has expired");
+  }
 
   const userDetails = sessionData.userDetails;
   if (!userDetails) {
@@ -89,7 +96,7 @@ console.log(storedOTP);
 
 
 
-// @desc    Resen OTP 
+// @desc    Resent OTP 
 // @route   USER /resend-otp
 // @access  Public
 
@@ -259,7 +266,7 @@ export const forgotOtp = asyncHandler(async (req: Request, res: Response) => {
   }
   const otpGeneratedTime = sessionData.otpGeneratedTime || 0;
   const currentTime = Date.now();
-  const otpExpirationTime = 30 * 1000; 
+  const otpExpirationTime = 60 * 1000; 
   if (currentTime - otpGeneratedTime > otpExpirationTime) {
     res.status(400);
     throw new Error("OTP has expired");

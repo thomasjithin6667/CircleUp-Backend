@@ -37,7 +37,7 @@ export const getPost = asyncHandler(async (req: Request, res: Response) => {
     const posts = await Post.find({ isBlocked: false ,isDeleted:false  }).populate({
       path: 'userId',
       select: ' username profileImageUrl'
-    });
+    }).sort({date:-1});
    
     
     res.status(200).json(posts);
@@ -138,17 +138,17 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
     res.status(404);
     throw new Error("Post not found");
   }
+
   const isLiked = post.likes.includes(userId);
 
   if (isLiked) {
-
-    post.likes = post.likes.filter((id) => id.toString() !== userId);
+  
+    await Post.findOneAndUpdate({_id: postId}, {$pull: {likes: userId}}, {new: true})
   } else {
-
-    post.likes.push(userId);
+ 
+    await Post.findOneAndUpdate({_id: postId}, {$push: {likes: userId }}, {new: true})
   }
 
-  await post.save();
 
   const posts = await Post.find({userId:userId, isBlocked: false,isDeleted:false }).populate({
     path: 'userId',
