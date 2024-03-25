@@ -34,11 +34,11 @@ export const addPost = asyncHandler(async (req: Request, res: Response) => {
 // @access  Public
 
 export const getPost = asyncHandler(async (req: Request, res: Response) => {
-    const posts = await Post.find({ isBlocked: false }).populate({
+    const posts = await Post.find({ isBlocked: false ,isDeleted:false  }).populate({
       path: 'userId',
       select: ' username profileImageUrl'
     });
-    console.log(posts);
+   
     
     res.status(200).json(posts);
   });
@@ -51,13 +51,23 @@ export const getPost = asyncHandler(async (req: Request, res: Response) => {
 // @access  Public
 
 export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
+
+  
+  
   const id = req.body.userId;
 
-  const posts = await Post.find({userId:id, isBlocked: false }).populate({
+  const posts = await Post.find({userId:id, isBlocked: false, isDeleted:false  }).populate({
     path: 'userId',
     select: 'username profileImageUrl'
   }).sort({date:-1});
+
+  if (posts.length==0) {
+    res.status(400);
+    throw new Error("No Post available");
+  }
+  
   res.status(200).json(posts);
+
 });
 
 // @desc    Edit Post
@@ -80,7 +90,7 @@ export const editPost = asyncHandler(async (req: Request, res: Response) => {
 
   await post.save();
   
-  const posts = await Post.find({userId:userId, isBlocked: false }).populate({
+  const posts = await Post.find({userId:userId, isBlocked: false, isDeleted:false  }).populate({
     path: 'userId',
     select: 'username profileImageUrl'
   }).sort({date:-1});
@@ -93,21 +103,57 @@ export const editPost = asyncHandler(async (req: Request, res: Response) => {
 });
 
 
-
-
+// @desc    Delete Post
+// @route   POST /post/delete-post
+// @access  Public
 export const deletePost = asyncHandler(async (req: Request, res: Response) => {
     
-    const postId = req.params.postId;
+  const {postId,userId} = req.body;
+  console.log(postId,userId)
+    const post = await Post.findById(postId);
+    if (!post) {
+      res.status(404);
+      throw new Error("Post Cannot be found")
+    }
+
+    post.isDeleted = true;
+    await post.save();
+    const posts = await Post.find({userId:userId, isBlocked: false,isDeleted:false }).populate({
+      path: 'userId',
+      select: 'username profileImageUrl'
+    }).sort({date:-1});
+
+    res.status(200).json({ posts });
   
-      const post = await Post.findById(postId);
-      if (!post) {
-        res.status(404);
-        throw new Error("Post Cannot be found")
-      }
-  
-    //   await Post.findOneAndDelete(postId);
-  
-      res.status(200).json({ message: "Post deleted successfully" });
-    
-  });
-  
+});
+
+// @desc    Like Post
+// @route   POST /post/like-post
+// @access  Public
+
+export const likePost = asyncHandler(async (req: Request, res: Response) => {
+  const { postId, userId } = req.body;
+  const post = await Post.findById(postId);
+  if (!post) {
+    res.status(404);
+    throw new Error("Post not found");
+  }
+  const isLiked = post.likes.includes(userId);
+
+  if (isLiked) {
+
+    post.likes = post.likes.filter((id) => id.toString() !== userId);
+  } else {
+
+    post.likes.push(userId);
+  }
+
+  await post.save();
+
+  const posts = await Post.find({userId:userId, isBlocked: false,isDeleted:false }).populate({
+    path: 'userId',
+    select: 'username profileImageUrl'
+  }).sort({date:-1});
+
+  res.status(200).json({ posts });
+});
