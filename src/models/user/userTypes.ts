@@ -18,9 +18,11 @@ export interface Experience {
 
 // Enum for user types
 export enum UserType {
-  Company = 'company',
+  Company = 'organization',
   Individual = 'individual',
 }
+
+
 
 // Define the profile schema
 export interface Profile {

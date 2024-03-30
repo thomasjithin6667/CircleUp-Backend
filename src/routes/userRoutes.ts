@@ -1,5 +1,5 @@
 import express, { Express, Request, Response } from "express";
-import { registerUser,verifyOTP ,loginUser ,resendOtp, googleAuth,forgotOtp,forgotPassword,resetPassword} from '../controllers/userController';
+import { registerUser,verifyOTP ,loginUser ,resendOtp, googleAuth,forgotOtp,forgotPassword,resetPassword, updateUserTypeAndHiring} from '../controllers/userController';
 import { protect } from '../middlewares/auth';
 const router = express.Router()
 
@@ -15,6 +15,7 @@ router.post('/google-auth',googleAuth)
 router.post('/forgot-password',forgotPassword)
 router.post('/forgot-otp',forgotOtp)
 router.post('/reset-password',resetPassword)
+router.post('/set-preferences',updateUserTypeAndHiring)
 
 
 export default router

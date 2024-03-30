@@ -34,15 +34,19 @@ export const addPost = asyncHandler(async (req: Request, res: Response) => {
 // @access  Public
 
 export const getPost = asyncHandler(async (req: Request, res: Response) => {
-    const posts = await Post.find({ isBlocked: false ,isDeleted:false  }).populate({
+  const posts = await Post.find({ isBlocked: false, isDeleted: false })
+    .populate({
       path: 'userId',
-      select: ' username profileImageUrl'
-    }).sort({date:-1});
-   
-    
-    res.status(200).json(posts);
-  });
+      select: 'username profileImageUrl'
+    })
+    .populate({
+      path: 'likes',
+      select: 'username profileImageUrl'
+    })
+    .sort({ date: -1 });
 
+  res.status(200).json(posts);
+});
 
 
 

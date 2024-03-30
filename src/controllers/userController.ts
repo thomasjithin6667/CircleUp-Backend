@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken";
 import sendVerifyMail from "../utils/sendVerifyMail";
 import speakeasy from "speakeasy";
-
+import  { IUser, UserType } from '../models/user/userTypes';
 
 // @desc    Register new User
 // @route   USER /register
@@ -30,6 +30,8 @@ export const registerUser = asyncHandler(
       secret: speakeasy.generateSecret({ length: 20 }).base32,
       digits: 4, 
     });
+    console.log("user Otp = "+otp);
+    
 
     const sessionData = req.session!;
     sessionData.userDetails = { username, email, password };
@@ -117,7 +119,7 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
     res.status(400).json({ message: "User details not found in session" });
     return;
   }
-  console.log(otp)
+  console.log("user Otp = "+otp);
   sendVerifyMail(req, userDetails.username, userDetails.email);
   res.status(200).json({ message: "OTP sent for verification" ,email,otp});
 });
@@ -310,3 +312,36 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
   await user.save();
   res.status(200).json({ message: 'Password has been reset successfully' });
 });
+
+
+
+
+
+export const updateUserTypeAndHiring = async (req: Request, res: Response) => {
+  try {
+
+    const {userId, userType, isHiring } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+
+    user.userType = userType as UserType; 
+    if(isHiring==='isHiring'){
+      user.isHiring = true;
+
+    }else{
+      user.isHiring = false;
+
+    }
+   
+
+    await user.save();
+    res.status(200).json({ message: 'User updated successfully', user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
