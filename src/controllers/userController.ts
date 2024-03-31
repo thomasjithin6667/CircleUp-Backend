@@ -134,7 +134,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   console.log(req.body);
   
   const user = await User.findOne({ email });
-  console.log(user);
+
   
   
   if (user) {
@@ -145,12 +145,12 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   }
 
   if (user && (await bcrypt.compare(password, user.password))) {
+    const userData= await User.findOne({email},{password:0})
     res.json({ message: "Login Sucessful" ,
-      _id: user.id,
-      name: user.username,
-      email: user.email,
-      profileImg: user.profileImageUrl,
+      
+      user:userData,
       token: generateToken(user.id),
+
     });
   } else {
     res.status(400);
@@ -177,12 +177,10 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
       }
 
       if (userExist) {
+        const userData= await User.findOne({email},{password:0})
         res.json({
           message: "Login Successful",
-          _id: userExist.id,
-          name: userExist.username,
-          email: userExist.email,
-          profileImg: userExist.profileImageUrl,
+          user:userData,
           token: generateToken(userExist.id),
         });
         return;
@@ -202,13 +200,10 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
     });
 
     const token = generateToken(newUser.id);
-
+    const userData= await User.findOne({email},{password:0})
     res.status(200).json({
       message: "Login Successful",
-      _id: newUser.id,
-      name: newUser.username,
-      email: newUser.email,
-      profileImg: newUser.profileImageUrl,
+      user:userData,
       token: token,
     });
   } catch (error) {

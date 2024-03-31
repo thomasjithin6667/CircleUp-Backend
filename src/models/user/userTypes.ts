@@ -1,22 +1,21 @@
 // types.ts
 
-import { Document, Types } from 'mongoose';
+import { Date, Document, Types } from 'mongoose';
 
-// Define the qualification schema
 export interface Qualification {
   course: string;
   institution: string;
   yearOfCompletion: number;
 }
 
-// Define the experience schema
+
 export interface Experience {
   jobPosition: string;
   yearOfJoining: number;
   companyName: string;
 }
 
-// Enum for user types
+
 export enum UserType {
   Company = 'organization',
   Individual = 'individual',
@@ -33,6 +32,7 @@ export interface Profile {
   skills?: string[];
   resume?: string;
   gender?: string;
+  dateOfBirth?:Date;
 }
 
 // Define the company profile schema
@@ -46,6 +46,7 @@ export interface CompanyProfile {
 // Define the user document interface
 export interface IUser extends Document {
   username: string;
+  fullname:string;
   email: string;
   password: string;
   isHiring: boolean;

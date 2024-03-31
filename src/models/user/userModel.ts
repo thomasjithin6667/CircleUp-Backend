@@ -7,6 +7,7 @@ import { IUser, UserType } from './userTypes';
 const UserSchema: Schema<IUser> = new Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  fullname:{type:String},
   password: { type: String, required: true },
   isHiring: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
@@ -15,7 +16,7 @@ const UserSchema: Schema<IUser> = new Schema({
   isFacebook:{type:Boolean,default:false},
   userType: { type: String, enum: Object.values(UserType)},
   profile: {
-    type: {
+   
       about: { type: String },
       location: { type: String },
       qualification: [{ course: String, institution: String, yearOfCompletion: Number }],
@@ -23,16 +24,17 @@ const UserSchema: Schema<IUser> = new Schema({
       skills: [{ type: String }],
       resume: { type: String },
       gender: { type: String },
-    },
+      dateOfBirth:{type:Date}
+    
    
   },
   companyProfile: {
-    type: {
+   
       companyName: { type: String },
       companyLocation: { type: String },
       aboutCompany: { type: String },
       noOfEmployees: { type: Number },
-    },
+   
   },
   phone: { type: String },
   savedPosts: [{ type: mongoose.Types.ObjectId, ref: 'Post' }],
