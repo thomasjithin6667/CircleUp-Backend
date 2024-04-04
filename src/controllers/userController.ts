@@ -6,6 +6,8 @@ import generateToken from "../utils/generateToken";
 import sendVerifyMail from "../utils/sendVerifyMail";
 import speakeasy from "speakeasy";
 import  { IUser, UserType } from '../models/user/userTypes';
+import { log } from "console";
+import Connections from "../models/connections/connectionModel";
 
 // @desc    Register new User
 // @route   USER /register
@@ -89,6 +91,9 @@ console.log(storedOTP);
     email: userDetails.email,
     password: userDetails.password,
   });
+  await Connections.create({
+    userId: user._id,
+  });
 
   delete sessionData.userDetails;
   delete sessionData.otp;
@@ -145,6 +150,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   }
 
   if (user && (await bcrypt.compare(password, user.password))) {
+
     const userData= await User.findOne({email},{password:0})
     res.json({ message: "Login Sucessful" ,
       
@@ -177,6 +183,7 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
       }
 
       if (userExist) {
+ 
         const userData= await User.findOne({email},{password:0})
         res.json({
           message: "Login Successful",
@@ -340,3 +347,158 @@ export const updateUserTypeAndHiring = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+export const updateUserInformation= async (req: Request, res: Response) => {
+  try {
+
+    const {userId, userType, isHiring } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+
+    user.userType = userType as UserType; 
+    if(isHiring==='isHiring'){
+      user.isHiring = true;
+
+    }else{
+      user.isHiring = false;
+
+    }
+   
+
+    await user.save();
+    res.status(200).json({ message: 'User updated successfully', user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+
+
+export const updateUserRole= async (req: Request, res: Response) => {
+  try {
+
+    const {userId, isHiring } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+
+    
+    
+      user.isHiring = isHiring;
+
+   
+
+    await user.save();
+    res.status(200).json({ message: 'User updated successfully', user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+export const updateBasicInformation = async (req: Request, res: Response) => {
+  try {
+
+    const {userId, imageUrl } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.userType === "individual") {
+      const { fullname, location, designation, dateOfBirth, phone, gender, about } = req.body;
+
+      user.profile.fullname = fullname;
+      user.profile.location = location;
+      user.profile.designation = designation;
+      user.profile.dateOfBirth = dateOfBirth;
+      user.phone = phone;
+      user.profile.gender = gender;
+      user.profile.about = about;
+    } else if (user.userType === "organization") {
+      const { fullname, location, phone, about,noOfEmployees,establishedOn,companyType} = req.body;
+           console.log(companyType);
+           
+      user.companyProfile.companyName = fullname;
+      user.companyProfile.companyLocation = location;
+      user.companyProfile.aboutCompany = about;
+      user.companyProfile.establishedOn=establishedOn;
+      user.companyProfile.noOfEmployees=noOfEmployees;
+      user.companyProfile.companyType=companyType;
+      user.phone = phone;
+    } else {
+      return res.status(400).json({ message: 'Invalid user type' });
+    }
+
+    if (imageUrl) {
+      user.profileImageUrl = imageUrl;
+    }
+
+    await user.save();
+    const userData= await User.findOne({_id:userId},{password:0})
+    
+    res.status(200).json({ message: 'Basic information updated successfully', user:userData });
+  } catch (error) {
+    console.error('Error updating basic information:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+
+
+export const userSuggestions = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = req.body;
+
+    const connection = await Connections.findOne({ userId });
+    if (!connection) {
+      const users = await User.find({ _id: { $ne: userId } });
+      res.status(200).json({ suggestedUsers:users });
+      return;
+    }
+    const followingIds = connection.connections.map((user:any) => user._id);
+    const requestedIds = connection.requestSent.map((user:any) => user._id);
+
+    const suggestedUsers = await User.find(
+      {
+        _id: { $nin: [...followingIds, ...requestedIds, userId] }
+      },
+      { password: 0 }
+    );
+    
+    res
+      .status(200)
+      .json({  suggestedUsers });
+  }
+);
+
+
+
+export const getUserDetails = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = req.params;
+  
+    const user = await User.findById(userId);
+    const connections = await Connections.findOne({ userId:userId });
+
+    if (user) {
+      res.status(200).json({ user, connections });
+    } else {
+      res.status(404);
+      throw new Error(" user Not found");
+    }
+  }
+);

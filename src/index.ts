@@ -6,6 +6,8 @@ import adminRoutes from "./routes/adminRoutes"
 import errorHandler from './middlewares/errorMiddleware';
 import session from "express-session";
 import postRoutes from './routes/postRoutes';
+import connectionRoutes from './routes/connectionRoutes';
+import jobRoutes from './routes/jobRoutes';
 import cors from 'cors';
 
 dotenv.config();
@@ -44,6 +46,8 @@ app.use(session({
 app.use('/api/',userRoutes);
 app.use('/api/admin',adminRoutes);
 app.use('/api/post',postRoutes);
+app.use("/api/connection", connectionRoutes);
+app.use('/api/job',jobRoutes);
 app.use(errorHandler);
 
 connectDB()

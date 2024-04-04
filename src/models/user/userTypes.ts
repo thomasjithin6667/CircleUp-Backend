@@ -33,6 +33,8 @@ export interface Profile {
   resume?: string;
   gender?: string;
   dateOfBirth?:Date;
+  designation?:string;
+  fullname?:string;
 }
 
 // Define the company profile schema
@@ -40,13 +42,14 @@ export interface CompanyProfile {
   companyName?: string;
   companyLocation?: string;
   aboutCompany?: string;
-  noOfEmployees?: number;
+  noOfEmployees?: string;
+  establishedOn?:Date;
+  companyType?:string;
 }
 
 // Define the user document interface
 export interface IUser extends Document {
   username: string;
-  fullname:string;
   email: string;
   password: string;
   isHiring: boolean;
@@ -56,11 +59,11 @@ export interface IUser extends Document {
   isOnline: boolean;
   userType: UserType;
   profile: Profile;
-  companyProfile?: CompanyProfile;
-  phone?: string;
+  companyProfile: CompanyProfile;
+  phone: string;
   savedPosts: Types.ObjectId[];
   savedJobs: Types.ObjectId[];
   isActive: boolean;
-  profileImageUrl?: string;
+  profileImageUrl: string;
   timestamp: Date;
 }

@@ -26,7 +26,20 @@ export const addPost = asyncHandler(async (req: Request, res: Response) => {
     res.status(400);
     throw new Error("Cannot add post");
   }
-  res.status(200).json({ message: "Post added successfully" });
+
+  const posts = await Post.find({userId:userId, isBlocked: false, isDeleted:false  }).populate({
+    path: 'userId',
+    select: 'username profileImageUrl'
+  }).sort({date:-1});
+
+  if (posts.length==0) {
+    res.status(400);
+    throw new Error("No Post available");
+  }
+  
+
+
+  res.status(200).json({ message: "Post added successfully",posts:posts});
 });
 
 // @desc    Get all Posts
@@ -59,6 +72,9 @@ export const getUserPost = asyncHandler(async (req: Request, res: Response) => {
   
   
   const id = req.body.userId;
+  console.log(id);
+ 
+  
 
   const posts = await Post.find({userId:id, isBlocked: false, isDeleted:false  }).populate({
     path: 'userId',
