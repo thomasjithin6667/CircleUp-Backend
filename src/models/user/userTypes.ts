@@ -23,7 +23,6 @@ export enum UserType {
 
 
 
-// Define the profile schema
 export interface Profile {
   about?: string;
   location?: string;
@@ -37,7 +36,7 @@ export interface Profile {
   fullname?:string;
 }
 
-// Define the company profile schema
+
 export interface CompanyProfile {
   companyName?: string;
   companyLocation?: string;
@@ -47,7 +46,7 @@ export interface CompanyProfile {
   companyType?:string;
 }
 
-// Define the user document interface
+
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -56,7 +55,10 @@ export interface IUser extends Document {
   isBlocked: boolean;
   isGoogle:boolean;
   isFacebook:boolean;
+  isPremium:boolean;
   isOnline: boolean;
+  dailyJobsApplied:number;
+  premiumExpiryDate:Date;
   userType: UserType;
   profile: Profile;
   companyProfile: CompanyProfile;

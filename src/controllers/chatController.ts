@@ -2,25 +2,58 @@ import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import Conversation from "../models/conversations/conversationsModel";
 import Message from "../models/messages/messagesModel";
+import { log } from "console";
 
 // @desc    Adda new conversation
 // @route   get /chat/add-conversation
 // @access  Public
 
-export const addConversationController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const newConversation = new Conversation({
-      members: [req.body.senderId, req.body.receiverId],
+
+export const addConversationController = async (req: Request, res: Response) => {
+  try {
+    const { senderId, receiverId } = req.body;
+    const existingConversation = await Conversation.findOne({
+      members: { $all: [senderId, receiverId] },
     });
 
-    try {
-      const savedConversation = await newConversation.save();
-      res.status(200).json(savedConversation);
-    } catch (err) {
-      res.status(500).json(err);
+    if (existingConversation) {
+      const conversation = await Conversation.find({
+        members: { $all: [senderId, receiverId]},
+      }).populate({
+        path: 'members',
+        select: 'username profileImageUrl'
+      });
+      const conversations = await Conversation.find({
+        members: { $in: [senderId] },
+      }).populate({
+        path: 'members',
+        select: 'username profileImageUrl'
+      });
+
+      return res.status(200).json({conversation,conversations});
     }
+    
+
+    const newConversation = new Conversation({
+      members: [senderId, receiverId],
+    });
+
+    const conversation = await newConversation.save();
+    const conversations = await Conversation.find({
+      members: { $in: [senderId] },
+    }).populate({
+      path: 'members',
+      select: 'username profileImageUrl'
+    });
+
+    res.status(200).json({conversation,conversations});
+
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
-);
+};
+
 
 // @desc    Get conversations of a user
 // @route   get /chat/get-conversation
@@ -66,6 +99,7 @@ export const findConversationController = asyncHandler(
 
 export const addMessageController = asyncHandler(async (req: Request, res: Response) => {
   const newMessage = new Message(req.body);
+console.log("reached here add me");
 
   try {
     const savedMessage = await newMessage.save();

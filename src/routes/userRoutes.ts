@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express  from "express";
 import {
   registerUser,
   verifyOTP,
@@ -15,11 +15,15 @@ import {
   updateUserRole
 } from "../controllers/userController";
 import { protect } from "../middlewares/auth";
-const router = express.Router();
+import { getPremiumUserData, initiatecheckout, validatePayment } from "../controllers/checkoutController";
 
-router.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
+const router = express.Router();
+router.use((req, res, next) => {
+  console.log(`thomas ${req.method} ${req.url}`);
+  next();
 });
+
+
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
@@ -34,5 +38,14 @@ router.post("/set-user-role", updateUserRole);
 router.post("/set-basic-information",updateBasicInformation);
 router.post('/user-suggestions',userSuggestions);
 router.get('/user-details/:userId',getUserDetails);
+router.post("/checkout-user", initiatecheckout);
+router.post("/validate-payment",validatePayment);
+router.post("/get-transactions",getPremiumUserData);
+
+
+
+
+
+
 
 export default router;

@@ -15,6 +15,9 @@ const UserSchema: Schema<IUser> = new Schema({
   isOnline: { type: Boolean, default: false },
   isGoogle:{type:Boolean,default:false},
   isFacebook:{type:Boolean,default:false},
+  isPremium:{type:Boolean,default:false},
+  dailyJobsApplied:{type:Number,default:0},
+  premiumExpiryDate:{type:Date,required:false},
   userType: { type: String, enum: Object.values(UserType)},
   profile: {
     fullname:{type:String},

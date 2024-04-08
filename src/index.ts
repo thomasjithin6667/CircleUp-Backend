@@ -8,7 +8,11 @@ import session from "express-session";
 import postRoutes from './routes/postRoutes';
 import connectionRoutes from './routes/connectionRoutes';
 import jobRoutes from './routes/jobRoutes';
+import ChatRoutes from './routes/chatRoutes';
 import cors from 'cors';
+import { Server, Socket } from 'socket.io';
+import http from 'http';
+const scheduledTask=require('./utils/scheduledTask')
 
 dotenv.config();
 
@@ -29,6 +33,10 @@ app.use(cors({
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 }))
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
@@ -43,17 +51,21 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000,
   },
 }));
+
+
 app.use('/api/',userRoutes);
 app.use('/api/admin',adminRoutes);
 app.use('/api/post',postRoutes);
 app.use("/api/connection", connectionRoutes);
 app.use('/api/job',jobRoutes);
+app.use("/api/chat", ChatRoutes);
+
+scheduledTask()
+
 app.use(errorHandler);
 
 connectDB()
 const port = process.env.PORT || 3000;
-
-
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
