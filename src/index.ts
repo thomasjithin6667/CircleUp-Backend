@@ -12,7 +12,9 @@ import ChatRoutes from './routes/chatRoutes';
 import cors from 'cors';
 import { Server, Socket } from 'socket.io';
 import http from 'http';
-const scheduledTask=require('./utils/scheduledTask')
+import runScheduledTask from './utils/scheduledTask';
+const path = require('path');
+
 
 dotenv.config();
 
@@ -40,6 +42,7 @@ app.use((req, res, next) => {
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 const sessionSecret = process.env.SESSION_SECRET || 'default_secret_key';
 
@@ -60,7 +63,8 @@ app.use("/api/connection", connectionRoutes);
 app.use('/api/job',jobRoutes);
 app.use("/api/chat", ChatRoutes);
 
-scheduledTask()
+runScheduledTask();
+
 
 app.use(errorHandler);
 

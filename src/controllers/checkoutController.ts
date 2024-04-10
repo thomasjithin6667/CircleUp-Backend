@@ -52,7 +52,6 @@ export const initiatecheckout = asyncHandler(async (req: Request, res: Response)
       billing_address_collection: 'required',
     });
 
-    console.log("Stripe session created:", session);
     res.json( { success: true, id: session.id  });
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -99,7 +98,7 @@ export const initiatecheckout = asyncHandler(async (req: Request, res: Response)
   
         await newPremium.save();
   
-      await User.findByIdAndUpdate(userId, { isPremium: true });
+      await User.findByIdAndUpdate(userId, { isPremium: true,premiumExpiryDate:expiryDate });
       const updatedUser=await User.findById(userId,{password:0});
   
         return res.json({ success: true, message: 'Premium document created and user updated successfully', user:updatedUser });
@@ -123,7 +122,7 @@ export const initiatecheckout = asyncHandler(async (req: Request, res: Response)
   
     try {
    
-      const allPremiumUserData = await PremiumUsers.find({});
+      const allPremiumUserData = await PremiumUsers.find({userId:userId});
   
     
       const latestPremiumUser = await PremiumUsers.findOne({ userId }).sort({ startDate: -1 });

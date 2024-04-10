@@ -18,10 +18,8 @@ import { protect } from "../middlewares/auth";
 import { getPremiumUserData, initiatecheckout, validatePayment } from "../controllers/checkoutController";
 
 const router = express.Router();
-router.use((req, res, next) => {
-  console.log(`thomas ${req.method} ${req.url}`);
-  next();
-});
+
+
 
 
 

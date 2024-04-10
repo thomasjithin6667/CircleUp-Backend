@@ -1,20 +1,25 @@
 import cron from 'node-cron';
 
 import User from '../models/user/userModel'; 
-
-
 async function runScheduledTask() {
   try {
     const users = await User.find({});
-      const expiryDate: Date = new Date(user.premiumExpiryDate);
+
 
     for (const user of users) {
-      
-      if (user.premiumExpiryDate < new Date()) {
+      const expiryDate: unknown = user.premiumExpiryDate;
+
+      if (expiryDate instanceof Date) {
+        const expiryDateAsDate: Date = expiryDate;
+      if (expiryDateAsDate  < new Date()) {
         user.isPremium = false;
-        user.dailyJobsApplied = 0;
-        await user.save();
+        
+  
       }
+    }
+      user.dailyJobsApplied = 0;
+      await user.save();
+
     }
 
     console.log('Cron job executed successfully');
