@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import Comment from '../models/comments/commentsModel'
+import Post from '../models/post/postModel'
+import { createNotification } from '../utils/notificationSetter';
+import mongoose from 'mongoose';
 
 
 // @desc    Get all comments of a post
@@ -19,8 +22,7 @@ export const getCommentsByPostId = asyncHandler(async (req: Request, res: Respon
     .populate({
       path: 'replyComments.userId',
       select: 'username profileImageUrl',
-    }).sort({createdAt:-1})
-  
+    })
     res.status(200).json({ comments });
   });
 
@@ -32,14 +34,34 @@ export const getCommentsByPostId = asyncHandler(async (req: Request, res: Respon
 
   export const addComment = asyncHandler(async (req: Request, res: Response) => {
     const { postId, userId, comment } = req.body;
-
+    const post = await Post.findById(postId);
 
     const newComment= await  Comment.create({
       postId,
       userId,
       comment,
     });
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+
+    if   (!userIdObj.equals(post?.userId)) {
+     
+      
+      
+      const notificationData = {
+        senderId:userId,
+        receiverId: post?.userId,
+        message: 'commented on your post',
+        link: `/visit-profile/posts/${post?.userId}`, 
+        read: false, 
+        postId:postId
+      };
   
+      createNotification(notificationData)
+
+
+    }
+
+ 
 
     await newComment.save();
     const comments = await Comment.find({ postId:postId ,isDeleted:false }) .populate({
@@ -81,7 +103,7 @@ export const getCommentsByPostId = asyncHandler(async (req: Request, res: Respon
     .populate({
       path: 'replyComments.userId',
       select: 'username profileImageUrl',
-    }).sort({createdAt:-1})
+    })
   
     res.status(200).json({ message: "Comment deleted successfully", comments });
   });

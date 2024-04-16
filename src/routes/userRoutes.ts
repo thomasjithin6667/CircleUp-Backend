@@ -16,11 +16,12 @@ import {
 } from "../controllers/userController";
 import { protect } from "../middlewares/auth";
 import { getPremiumUserData, initiatecheckout, validatePayment } from "../controllers/checkoutController";
+import { getNotifications } from "../controllers/notificationController";
 
 const router = express.Router();
 
 
-
+ 
 
 
 router.post("/register", registerUser);
@@ -39,6 +40,7 @@ router.get('/user-details/:userId',getUserDetails);
 router.post("/checkout-user", initiatecheckout);
 router.post("/validate-payment",validatePayment);
 router.post("/get-transactions",getPremiumUserData);
+router.post("/get-notifications",getNotifications )
 
 
 

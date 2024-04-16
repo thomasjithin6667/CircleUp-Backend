@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 import Connections from "../models/connections/connectionModel";
 import User from "../models/user/userModel";
+import { createNotification } from "../utils/notificationSetter";
 
 
 
@@ -68,6 +69,19 @@ export const followUser = asyncHandler(async (req: Request, res: Response) => {
       { $addToSet: { requestSent: followingUser } },
       { upsert: true }
     );
+
+    const notificationData = {
+      senderId:userId,
+      receiverId: followingUser,
+      message: 'requested to connect',
+      link: `/visit-profile/posts/`, 
+      read: false, 
+   
+    };
+
+    createNotification(notificationData)
+
+    
  
   const followingUserConnections = await Connections.find({
     userId: followingUser,
@@ -186,6 +200,17 @@ export const  acceptRequest  = asyncHandler(
       path: 'requestSent',
       select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
     });
+
+    const notificationData = {
+      senderId:userId,
+      receiverId: requestedUser ,
+      message: 'accepted your request',
+      link: `/visit-profile/posts/`, 
+      read: false, 
+   
+    };
+
+    createNotification(notificationData)
 
           res
       .status(200)
