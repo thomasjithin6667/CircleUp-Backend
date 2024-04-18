@@ -4,8 +4,8 @@ export interface IJob extends Document {
   userId: Schema.Types.ObjectId;
   companyName: string;
   jobRole?: string;
-  experience: string;
-  salary?: string;
+  experience: number;
+  salary?: number;
   jobType: string;
   jobLocation: string;
   lastDateToApply: Date;

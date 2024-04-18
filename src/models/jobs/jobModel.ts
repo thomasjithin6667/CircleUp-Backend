@@ -15,11 +15,11 @@ const jobSchema: Schema<IJob> = new mongoose.Schema({
     type: String,
   },
   experience: {
-    type: String,
+    type: Number,
     required: true,
   },
   salary: {
-    type: String,
+    type: Number,
   },
   jobType: {
     type: String,

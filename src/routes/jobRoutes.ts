@@ -1,6 +1,6 @@
 import express from "express";
 import {
-addJob, addJobApplication, cancelJobApplication, editJob, employeeApplications, employerApplications, getAllJobDetails, jobDetails, listActiveJobs,
+addJob, addJobApplication, cancelJobApplication, editJob, employeeApplications, employerApplications, getAllJobDetails, getFormSelectData, jobDetails, listActiveJobs,
 listUserJobs,
 updateApplicationStatus,
 viewJob
@@ -10,7 +10,7 @@ import { Request, Response, NextFunction } from 'express';
 import multer, { Multer } from 'multer'; 
 import path from 'path';
 import fs from 'fs';
-import { addInterview, editInterview, setInterviewStatus } from "../controllers/interviewController";
+import { addInterview, editInterview, getInterviewsByIntervieweeId, getInterviewsByInterviewerId, getInterviewsByJobId, setInterviewStatus } from "../controllers/interviewController";
 
 
 const router = express.Router();
@@ -58,4 +58,8 @@ router.post('/cancel-job-application',cancelJobApplication)
 router.post('/add-interview',addInterview)
 router.post('/edit-interview',editInterview)
 router.post('/edit-interview-status',setInterviewStatus)
+router.post('/get-interviewee-interviews',getInterviewsByIntervieweeId)
+router.post('/get-interviewer-interviews',getInterviewsByInterviewerId)
+router.post('/get-job-interviews',getInterviewsByJobId)
+router.get('/form-select-data',getFormSelectData)
 export default router;

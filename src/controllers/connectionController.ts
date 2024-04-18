@@ -9,18 +9,9 @@ import { createNotification } from "../utils/notificationSetter";
 export const getConnection = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = req.body;
-    const connection =await Connections.findOne({ userId }).populate({
-      path: 'connections',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requested',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requestSent',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    });
+    const connection =await Connections.findOne({ userId }).populate('connections')
+    .populate('requested')
+    .populate('requestSent');
 
 
     res.status(200).json({ connection: connection });
@@ -109,18 +100,9 @@ export const unFollowUser = asyncHandler(
       { $pull: { connections: unfollowingUser, requested: unfollowingUser } }
     );
 
-    const connection =await Connections.findOne({ userId }).populate({
-      path: 'connections',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requested',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requestSent',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    });
+    const connection =await Connections.findOne({ userId }).populate('connections')
+    .populate('requested')
+    .populate('requestSent');
 
 
     res
@@ -149,19 +131,9 @@ export const rejectRequest= asyncHandler(
       },
       { new: true }
     );
-    const connection =await Connections.findOne({ userId }).populate({
-      path: 'connections',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requested',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requestSent',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    });
-
+    const connection =await Connections.findOne({ userId }).populate('connections')
+    .populate('requested')
+    .populate('requestSent');
           res
       .status(200)
       .json({ success: true, message: "Follow request rejected successfully", connection: connection });
@@ -188,19 +160,9 @@ export const  acceptRequest  = asyncHandler(
       },
       { new: true }
     );
-    const connection =await Connections.findOne({ userId }).populate({
-      path: 'connections',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requested',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    })
-    .populate({
-      path: 'requestSent',
-      select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-    });
-
+    const connection =await Connections.findOne({ userId }).populate('connections')
+    .populate('requested')
+    .populate('requestSent');
     const notificationData = {
       senderId:userId,
       receiverId: requestedUser ,
@@ -232,19 +194,9 @@ export const cancelFollowRequest = asyncHandler(async (req: Request, res: Respon
     { $pull: { requested: userId } }
   );
 
-  const connection =await Connections.findOne({ userId }).populate({
-    path: 'connections',
-    select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-  })
-  .populate({
-    path: 'requested',
-    select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-  })
-  .populate({
-    path: 'requestSent',
-    select: 'profile.fullname profile.location  companyProfile.companyName companyProfile.companyType companyProfile.companyLocation profile.designation profileImageUrl',
-  });
-
+  const connection =await Connections.findOne({ userId }).populate('connections')
+  .populate('requested')
+  .populate('requestSent');
 
   res.status(200).json({ success: true, message: "Follow request canceled successfully", connection: connection });
 });

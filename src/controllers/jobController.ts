@@ -6,8 +6,16 @@ import User from "../models/user/userModel";
 import JobApplication from '../models/jobApplications/jobApplicationModel'; 
 import path from "path";
 import { createNotification } from "../utils/notificationSetter";
+import mongoose from "mongoose";
 
 
+interface IFilterData {
+  jobRole?: string;
+  location?: string;
+  jobType?: string;
+  salaryRange?: string;
+  experienceRange?: string;
+}
 
 
 
@@ -26,8 +34,8 @@ export const addJob =  asyncHandler(async (req: Request, res: Response): Promise
       userId,
       companyName,
       jobRole,
-      experience,
-      salary,
+      experience: experienceString,
+      salary: salaryString,
       jobType,
       jobLocation,
       lastDateToApply,
@@ -35,6 +43,8 @@ export const addJob =  asyncHandler(async (req: Request, res: Response): Promise
       jobDescription,
       qualification,
     } = req.body;
+    const experience = parseInt(experienceString, 10);
+    const salary = parseInt(salaryString, 10);
 
     const newJob = new Job({
       userId,
@@ -64,7 +74,6 @@ export const addJob =  asyncHandler(async (req: Request, res: Response): Promise
 
 //editjob
 export const editJob = asyncHandler(async (req: Request, res: Response): Promise<void> => {
- console.log("here bitch");
  
  
   try {
@@ -72,8 +81,8 @@ export const editJob = asyncHandler(async (req: Request, res: Response): Promise
       jobId,
       companyName,
       jobRole,
-      experience,
-      salary,
+      experience: experienceString,
+      salary: salaryString,
       jobType,
       jobLocation,
       lastDateToApply,
@@ -90,6 +99,8 @@ export const editJob = asyncHandler(async (req: Request, res: Response): Promise
       res.status(404).json({ message: 'Job not found' });
       return;
     }
+    const experience = parseInt(experienceString, 10);
+    const salary = parseInt(salaryString, 10);
 
     existingJob.companyName = companyName;
     existingJob.jobRole = jobRole;
@@ -114,14 +125,52 @@ export const editJob = asyncHandler(async (req: Request, res: Response): Promise
 
 //list job
 
+
 export const listActiveJobs = async (req: Request, res: Response): Promise<void> => {
   try {
-  
+    const { userId, filterData } = req.body;
+    console.log(filterData);
+    
 
-    const jobs: IJob[] = await Job.find({ isDeleted: { $ne: true } }).populate({
-      path: 'userId',
-      select: 'username profileImageUrl',
-    });
+    // Find all applications by the user and extract only the jobId field
+    const userApplications: mongoose.Types.ObjectId[] = await JobApplication.find({
+      applicantId: userId,
+      isDeleted: { $ne: true }, // Exclude deleted applications
+    }).distinct('jobId');
+
+    // Construct filter criteria based on the provided filterData
+    const filterCriteria: any = {
+      isDeleted: { $ne: true },
+      userId: { $ne: userId }, // Exclude jobs posted by the user
+      _id: { $nin: userApplications }, // Exclude jobs already applied for
+    };
+
+    if (filterData) {
+      if (filterData.jobRole) {
+        filterCriteria.jobRole = filterData.jobRole;
+      }
+      if (filterData.location) {
+        filterCriteria.jobLocation = filterData.location;
+      }
+      if (filterData.jobType) {
+        filterCriteria.jobType = filterData.jobType;
+      }
+      if (filterData.salaryRange&&filterData.salaryRange!=0) {
+        console.log("hello");
+        
+        const maxSalary = parseFloat(filterData.salaryRange); // Convert string to number
+        filterCriteria.salary = { $lte: maxSalary }; // Use $lte operator for salary filter
+      }
+      if (filterData.experienceRange&&filterData.experienceRange!=0) {
+        console.log("hellsfo");
+        const maxExp = parseFloat(filterData.experienceRange); // Convert string to number
+        filterCriteria.experience = { $lte: maxExp }; // Use $lte operator for experience filter
+      }
+    }
+
+    // Find jobs based on the constructed filter criteria
+    const jobs: IJob[] = await Job.find(filterCriteria)
+      .populate({ path: 'userId', select: 'username profileImageUrl' });
 
     res.status(200).json({ jobs });
   } catch (error) {
@@ -129,7 +178,6 @@ export const listActiveJobs = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 //list job
 
 export const listUserJobs = async (req: Request, res: Response): Promise<void> => {
@@ -307,15 +355,7 @@ export const employeeApplications = async (req: Request, res: Response): Promise
   try {
     const { applicantId } = req.body;
 
-    const applications = await JobApplication.find({ applicantId })
-      .populate({
-        path: 'jobId',
-        select: 'jobRole companyName jobLocation salary userId',
-        populate: {
-          path: 'userId',
-          select: 'profileImageUrl',
-        },
-      })
+    const applications = await JobApplication.find({ applicantId }) .populate('applicantId').populate('jobId')
       .exec();
 
     res.status(200).json({ success: true, applications });
@@ -339,15 +379,7 @@ export const viewJob = async (req: Request, res: Response): Promise<void> => {
       .exec();
 
     // Get job applications
-    const applications = await JobApplication.find({ jobId })
-      .populate({
-        path: 'applicantId',
-        select: 'username profileImageUrl profile.fullname profile.designation',
-      })
-      .populate({
-        path: 'jobId',
-        select: 'jobRole jobLocation jobType salary',
-      })
+    const applications = await JobApplication.find({ jobId }) .populate('applicantId').populate('jobId')
       .exec();
 
     res.status(200).json({ success: true, job, applications });
@@ -368,14 +400,7 @@ export const employerApplications = async (req: Request, res: Response): Promise
     const jobs = await Job.find({ userId });
 
     const jobIds = jobs.map((job) => job._id);
-    const applications = await JobApplication.find({ jobId: { $in: jobIds } })
-      .populate({
-        path: 'applicantId',
-        select: 'username profileImageUrl profile.fullname profile.designation',
-      }).populate({
-        path:'jobId',
-        select:'jobRole jobLocation jobType salary'
-      })
+    const applications = await JobApplication.find({ jobId: { $in: jobIds } }) .populate('applicantId').populate('jobId')
       .exec();
 
 
@@ -400,11 +425,7 @@ export const getAllJobDetails = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const applications = await JobApplication.find({ jobId })
-      .populate({
-        path: 'applicantId',
-        select: 'username profileImageUrl profile.fullname profile.designation',
-      })
+    const applications = await JobApplication.find({ jobId }) .populate('applicantId').populate('jobId')
       .exec();
 
     res.status(200).json({ success: true, job, applications });
@@ -437,5 +458,18 @@ export const cancelJobApplication = async (req: Request, res: Response): Promise
   } catch (error) {
     console.error('Error canceling job application:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+
+export const getFormSelectData = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const distinctLocations= await Job.distinct('jobLocation').sort();
+    const distinctRoles = await Job.distinct('jobRole').sort();
+
+    res.status(200).json({ locations: distinctLocations, roles: distinctRoles });
+  } catch (error) {
+    console.error('Error fetching distinct job data:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
