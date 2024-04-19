@@ -1,30 +1,31 @@
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import { Request, Response, NextFunction } from "express";
-import Admin from "../models/admin/adminModel";
 
 interface RequestWithToken extends Request {
   token?: string;
-  admin?: any;
+  user?: any;
 }
 
 const protectAdmin = asyncHandler(
   async (req: RequestWithToken, res: Response, next: NextFunction) => {
     let token;
-
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
     ) {
       try {
         token = req.headers.authorization.split(" ")[1];
-
+        req.token = token;
         const decoded: any = jwt.verify(
           token,
           process.env.JWT_SECRET as string
         );
-
-        req.admin = await Admin.findById(decoded.id).select("-password");
+        console.log(decoded.role);
+        if (decoded.role !== "admin") {
+          res.status(401);
+          throw new Error("Not authorized");
+        }
 
         next();
       } catch (error) {
@@ -33,9 +34,10 @@ const protectAdmin = asyncHandler(
         throw new Error("Not authorized");
       }
     }
+
     if (!token) {
       res.status(401);
-      throw new Error("No token");
+      throw new Error("Not authorized");
     }
   }
 );

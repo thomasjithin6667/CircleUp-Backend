@@ -131,18 +131,17 @@ export const listActiveJobs = async (req: Request, res: Response): Promise<void>
     const { userId, filterData } = req.body;
     console.log(filterData);
     
-
-    // Find all applications by the user and extract only the jobId field
     const userApplications: mongoose.Types.ObjectId[] = await JobApplication.find({
       applicantId: userId,
-      isDeleted: { $ne: true }, // Exclude deleted applications
+      isDeleted: { $ne: true },
     }).distinct('jobId');
 
-    // Construct filter criteria based on the provided filterData
+    
     const filterCriteria: any = {
       isDeleted: { $ne: true },
-      userId: { $ne: userId }, // Exclude jobs posted by the user
-      _id: { $nin: userApplications }, // Exclude jobs already applied for
+      userId: { $ne: userId }, 
+      isAdminBlocked:false ,
+      _id: { $nin: userApplications },
     };
 
     if (filterData) {
@@ -158,17 +157,16 @@ export const listActiveJobs = async (req: Request, res: Response): Promise<void>
       if (filterData.salaryRange&&filterData.salaryRange!=0) {
         console.log("hello");
         
-        const maxSalary = parseFloat(filterData.salaryRange); // Convert string to number
-        filterCriteria.salary = { $lte: maxSalary }; // Use $lte operator for salary filter
+        const maxSalary = parseFloat(filterData.salaryRange); 
+        filterCriteria.salary = { $lte: maxSalary }; 
       }
       if (filterData.experienceRange&&filterData.experienceRange!=0) {
         console.log("hellsfo");
-        const maxExp = parseFloat(filterData.experienceRange); // Convert string to number
-        filterCriteria.experience = { $lte: maxExp }; // Use $lte operator for experience filter
+        const maxExp = parseFloat(filterData.experienceRange); 
+        filterCriteria.experience = { $lte: maxExp }; 
       }
     }
 
-    // Find jobs based on the constructed filter criteria
     const jobs: IJob[] = await Job.find(filterCriteria)
       .populate({ path: 'userId', select: 'username profileImageUrl' });
 
@@ -184,7 +182,7 @@ export const listUserJobs = async (req: Request, res: Response): Promise<void> =
   try {
  const{userId}=req.body
 
- const jobs: IJob[] = await Job.find({ userId: userId, isDeleted: { $ne: true } })
+ const jobs: IJob[] = await Job.find({ userId: userId, isDeleted: { $ne: true }})
  .populate({
    path: 'userId',
    select: 'username profileImageUrl',
@@ -272,9 +270,11 @@ export const addJobApplication = async (req: Request, res: Response): Promise<vo
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 //update application status
 export const updateApplicationStatus = async (req: Request, res: Response): Promise<void> => {
-  console.log("reached updateApplicationStatus ");
+
   
   try {
     const { applicationId,status,userId } = req.body; 
@@ -296,15 +296,17 @@ export const updateApplicationStatus = async (req: Request, res: Response): Prom
     const job = await Job.findOne({_id:jobApplication.jobId})
 
     const jobIds = jobs.map((job) => job._id);
-    const applications = await JobApplication.find({ jobId: { $in: jobIds } })
-      .populate({
-        path: 'applicantId',
-        select: 'username profileImageUrl profile.fullname profile.designation companyProfile.companyName ',
-      }).populate({
-        path:'jobId',
-        select:'jobRole jobLocation jobType salary'
-      })
-      .exec();
+    const applications = await JobApplication.find({ jobId: { $in: jobIds }})
+    .populate({
+      path: 'applicantId',
+      select: 'username profileImageUrl profile.fullname profile.designation companyProfile.companyName',
+    })
+    .populate('jobId')
+    .exec();
+
+    const jobSpecificApplications = await JobApplication.find({ jobId:jobApplication.jobId }) .populate('applicantId').populate('jobId')
+    .exec();
+
 
       if(status=="Accepted"){
         
@@ -340,13 +342,38 @@ export const updateApplicationStatus = async (req: Request, res: Response): Prom
 
 
 
-
-    res.status(200).json({ message: `Job application ${status} successfully`, applications });
+    res.status(200).json({ message: `Job application ${status} successfully`, applications,jobSpecificApplications });
   } catch (error) {
     console.error('Error accepting job application:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+//cancel applciation
+export const cancelJobApplication = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { applicationId ,applicantId} = req.body; 
+    const jobApplication = await JobApplication.findById(applicationId);
+
+    if (!jobApplication) {
+      res.status(404).json({ message: 'Job application not found' });
+      return;
+    }
+    jobApplication.isDeleted = !jobApplication.isDeleted;
+
+    await jobApplication.save();
+
+    const applications = await JobApplication.find({ applicantId ,
+      isDeleted: { $ne: true}}) .populate('applicantId').populate('jobId')
+      .exec();
+
+    res.status(200).json({ success: true,message:"Application Canceled", applications });
+  } catch (error) {
+    console.error('Error fetching employee applications:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 
 
 export const employeeApplications = async (req: Request, res: Response): Promise<void> => {
@@ -355,7 +382,8 @@ export const employeeApplications = async (req: Request, res: Response): Promise
   try {
     const { applicantId } = req.body;
 
-    const applications = await JobApplication.find({ applicantId }) .populate('applicantId').populate('jobId')
+    const applications = await JobApplication.find({ applicantId ,
+      isDeleted: { $ne: true}}) .populate('applicantId').populate('jobId')
       .exec();
 
     res.status(200).json({ success: true, applications });
@@ -379,7 +407,8 @@ export const viewJob = async (req: Request, res: Response): Promise<void> => {
       .exec();
 
     // Get job applications
-    const applications = await JobApplication.find({ jobId }) .populate('applicantId').populate('jobId')
+    const applications = await JobApplication.find({ jobId,
+      isDeleted: { $ne: true }}) .populate('applicantId').populate('jobId')
       .exec();
 
     res.status(200).json({ success: true, job, applications });
@@ -435,31 +464,6 @@ export const getAllJobDetails = async (req: Request, res: Response): Promise<voi
   }
 };
 
-
-//cancel job application request
-export const cancelJobApplication = async (req: Request, res: Response): Promise<void> => {
-  console.log("reached cancelJobApplication");
- 
-  try {
-    const { applicationId } = req.body;
-
-    const jobApplication = await JobApplication.findByIdAndUpdate(
-      applicationId,
-      { isCanceled: true },
-      { new: true }
-    );
-
-    if (!jobApplication) {
-      res.status(404).json({ success: false, message: 'Job application not found' });
-      return;
-    }
-
-    res.status(200).json({ success: true, message: 'Job application canceled successfully', jobApplication });
-  } catch (error) {
-    console.error('Error canceling job application:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-};
 
 
 export const getFormSelectData = async (req: Request, res: Response): Promise<void> => {

@@ -10,10 +10,12 @@ import connectionRoutes from './routes/connectionRoutes';
 import jobRoutes from './routes/jobRoutes';
 import ChatRoutes from './routes/chatRoutes';
 import cors from 'cors';
-import { Server, Socket } from 'socket.io';
-import http from 'http';
+
 import runScheduledTask from './utils/scheduledTask';
 const path = require('path');
+import { Server, Socket } from 'socket.io';
+import socketIo_Config from './utils/socket/socket';
+import http from 'http';
 
 
 dotenv.config();
@@ -66,11 +68,24 @@ app.use("/api/chat", ChatRoutes);
 runScheduledTask();
 
 
+// Create HTTP server
+const server = http.createServer(app);
+
+const io: Server = new Server(server, {
+  cors: { origin: 'http://localhost:5173' }
+});
+
+// Configure Socket.IO
+socketIo_Config(io);
+
+
+
 app.use(errorHandler);
 
 connectDB()
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
+
+server.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
 });

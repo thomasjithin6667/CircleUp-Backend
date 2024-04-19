@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import { Request, Response, NextFunction } from "express";
-import User from "../models/user/userModel";
 
 interface RequestWithToken extends Request {
   token?: string;
@@ -22,12 +21,12 @@ const protect = asyncHandler(
           token,
           process.env.JWT_SECRET as string
         );
-        req.user = await User.findById(decoded.id).select("-password");
-        if(req.user.isBlocked){
+        console.log(decoded.role);
+        if (decoded.role !== "user") {
           res.status(401);
-          throw new Error("Your account is temporaly suspended");
-
+          throw new Error("Not authorized");
         }
+
         next();
       } catch (error) {
         console.log(error);
@@ -35,6 +34,7 @@ const protect = asyncHandler(
         throw new Error("Not authorized");
       }
     }
+
     if (!token) {
       res.status(401);
       throw new Error("Not authorized");
