@@ -23,7 +23,7 @@ const http_1 = __importDefault(require("http"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
-    origin: 'http://circleup.site/',
+    origin: '*',
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
 }));
@@ -53,7 +53,7 @@ app.use("/api/chat", chatRoutes_1.default);
 // Create HTTP server
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
-    cors: { origin: 'http://circleup.site/' }
+    cors: { origin: '*' }
 });
 // Configure Socket.IO
 (0, socket_1.default)(io);

@@ -33,7 +33,7 @@ declare module 'express-session' {
 }
 
 app.use(cors({
-  origin:'http://circleup.site/',
+  origin:'*',
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 }))
@@ -72,7 +72,7 @@ runScheduledTask();
 const server = http.createServer(app);
 
 const io: Server = new Server(server, {
-  cors: { origin: 'http://circleup.site/' }
+  cors: { origin: '*' }
 });
 
 // Configure Socket.IO
