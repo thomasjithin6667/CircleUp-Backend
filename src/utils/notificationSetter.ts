@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
-import Notification, { INotification } from '../models/notifications/notificationsModel';
+import Notification from '../models/notifications/notificationsModel';
+import { INotification } from '../models/notifications/notificationsTypes';
 
 interface NotificationArgs {
   senderId: Types.ObjectId|undefined|any;

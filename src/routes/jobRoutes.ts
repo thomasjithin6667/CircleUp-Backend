@@ -11,6 +11,7 @@ import multer, { Multer } from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { addInterview, editInterview, getInterviewsByIntervieweeId, getInterviewsByInterviewerId, getInterviewsByJobId, setInterviewStatus } from "../controllers/interviewController";
+import { protect } from "../middlewares/auth";
 
 
 const router = express.Router();
@@ -43,24 +44,24 @@ router.use((err: any, req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.post('/add-job',addJob);
-router.post('/edit-job',editJob);
-router.post('/view-job',viewJob)
-router.post('/list-all-job',listActiveJobs);
-router.post('/list-user-job',listUserJobs)
-router.post('/job-details',jobDetails)
+router.post('/add-job',protect,addJob);
+router.put('/edit-job',protect,editJob);
+router.post('/view-job',protect,viewJob)
+router.post('/list-all-job',protect,listActiveJobs);
+router.post('/list-user-job',protect,listUserJobs)
+router.post('/job-details',protect,jobDetails)
 router.post('/apply-job',upload.single('resume'),addJobApplication)
-router.post('/update-application-status',updateApplicationStatus)
-router.post('/get-applications-employee',employeeApplications)
-router.post('/get-applications-empolyer',employerApplications)
-router.post('/get-all-job-details',getAllJobDetails)
-router.post('/cancel-job-application',cancelJobApplication)
-router.post('/add-interview',addInterview)
-router.post('/edit-interview',editInterview)
-router.post('/edit-interview-status',setInterviewStatus)
-router.post('/get-interviewee-interviews',getInterviewsByIntervieweeId)
-router.post('/get-interviewer-interviews',getInterviewsByInterviewerId)
-router.post('/get-job-interviews',getInterviewsByJobId)
-router.get('/form-select-data',getFormSelectData)
+router.patch('/update-application-status',protect,updateApplicationStatus)
+router.post('/get-applications-employee',protect,employeeApplications)
+router.post('/get-applications-empolyer',protect,employerApplications)
+router.post('/get-all-job-details',protect,getAllJobDetails)
+router.patch('/cancel-job-application',protect,cancelJobApplication)
+router.post('/add-interview',protect,addInterview)
+router.put('/edit-interview',protect,editInterview)
+router.patch('/edit-interview-status',protect,setInterviewStatus)
+router.post('/get-interviewee-interviews',protect,getInterviewsByIntervieweeId)
+router.post('/get-interviewer-interviews',protect,getInterviewsByInterviewerId)
+router.post('/get-job-interviews',protect,getInterviewsByJobId)
+router.get('/form-select-data',protect,getFormSelectData)
 
 export default router;

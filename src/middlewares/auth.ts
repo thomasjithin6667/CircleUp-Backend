@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import { Request, Response, NextFunction } from "express";
-
+import User from "../models/user/userModel";
 interface RequestWithToken extends Request {
   token?: string;
   user?: any;
@@ -21,17 +21,31 @@ const protect = asyncHandler(
           token,
           process.env.JWT_SECRET as string
         );
-        console.log(decoded.role);
+
         if (decoded.role !== "user") {
           res.status(401);
           throw new Error("Not authorized");
         }
 
+     
+        req.user = await User.findById(decoded.id).select("-password");
+
+        
+        if (req.user.isBlocked) {
+          res.status(401);
+          throw new Error("User Is Blocked");
+        }
+
         next();
-      } catch (error) {
+      } catch (error:any) {
         console.log(error);
-        res.status(401);
-        throw new Error("Not authorized");
+        if (error.name === "TokenExpiredError") {
+          res.status(401);
+          throw new Error("Token expired");
+        } else {
+          res.status(401);
+          throw new Error("Not authorized");
+        }
       }
     }
 

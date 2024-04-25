@@ -82,9 +82,9 @@ export const getCommentsByPostId = asyncHandler(async (req: Request, res: Respon
 // @route   POST /post/delete-comment
 // @access  Private
   export const deletePostComment = asyncHandler(async (req: Request, res: Response) => {
-    console.log("reaced deleted");
+
     const {commentId }= req.query;
-    console.log(req.query);
+
     
 
   
@@ -112,7 +112,7 @@ export const getCommentsByPostId = asyncHandler(async (req: Request, res: Respon
 // @route   POST /post/reply-comment
 // @access  Private
 export const addReplyComment = asyncHandler(async (req, res) => {
-  console.log("reached replu");
+
   
   const { commentId,userId, replyComment } = req.body;
 

@@ -77,10 +77,13 @@ export const followUser = asyncHandler(async (req: Request, res: Response) => {
   const followingUserConnections = await Connections.find({
     userId: followingUser,
   });
+  const connection =await Connections.findOne({ userId }).populate('connections')
+  .populate('requested')
+  .populate('requestSent');
 
   res
     .status(200)
-    .json({ success: true, message: "User followed successfully", followed });
+    .json({ success: true, message: "User followed successfully", followed,connection: connection  });
 });
 
 

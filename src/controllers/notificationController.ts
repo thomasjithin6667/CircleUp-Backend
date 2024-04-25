@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import Notification, { INotification } from '../models/notifications/notificationsModel';
+import Notification from '../models/notifications/notificationsModel';
 import Connections from '../models/connections/connectionModel'; 
+import { INotification } from '../models/notifications/notificationsTypes';
 
 
 interface NotificationData extends INotification {

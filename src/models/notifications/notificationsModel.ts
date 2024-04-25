@@ -1,18 +1,8 @@
 
 import { Document, Schema, model, Types } from 'mongoose';
+import { INotification } from './notificationsTypes';
 
 
-export interface INotification extends Document {
-  senderId: Types.ObjectId;
-  receiverId: Types.ObjectId;
-  postId?: Types.ObjectId;
-  jobId?: Types.ObjectId;
-  applicationId?: Types.ObjectId;
-  message: string;
-  link: string;
-  read: boolean;
-  createdAt: Date;
-}
 
 const notificationSchema = new Schema<INotification>(
   {

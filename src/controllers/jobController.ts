@@ -7,6 +7,7 @@ import JobApplication from '../models/jobApplications/jobApplicationModel';
 import path from "path";
 import { createNotification } from "../utils/notificationSetter";
 import mongoose from "mongoose";
+import { log } from "console";
 
 
 interface IFilterData {
@@ -129,18 +130,19 @@ export const editJob = asyncHandler(async (req: Request, res: Response): Promise
 export const listActiveJobs = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, filterData } = req.body;
+    const searchText = filterData?.search || ''; 
+
     console.log(filterData);
-    
+
     const userApplications: mongoose.Types.ObjectId[] = await JobApplication.find({
       applicantId: userId,
       isDeleted: { $ne: true },
     }).distinct('jobId');
 
-    
     const filterCriteria: any = {
       isDeleted: { $ne: true },
-      userId: { $ne: userId }, 
-      isAdminBlocked:false ,
+      userId: { $ne: userId },
+      isAdminBlocked: false,
       _id: { $nin: userApplications },
     };
 
@@ -154,16 +156,20 @@ export const listActiveJobs = async (req: Request, res: Response): Promise<void>
       if (filterData.jobType) {
         filterCriteria.jobType = filterData.jobType;
       }
-      if (filterData.salaryRange&&filterData.salaryRange!=0) {
-        console.log("hello");
-        
-        const maxSalary = parseFloat(filterData.salaryRange); 
-        filterCriteria.salary = { $lte: maxSalary }; 
+      if (filterData.salaryRange && filterData.salaryRange != 0) {
+      
+
+        const maxSalary = parseFloat(filterData.salaryRange);
+        filterCriteria.salary = { $lte: maxSalary };
       }
-      if (filterData.experienceRange&&filterData.experienceRange!=0) {
-        console.log("hellsfo");
-        const maxExp = parseFloat(filterData.experienceRange); 
-        filterCriteria.experience = { $lte: maxExp }; 
+      if (filterData.experienceRange && filterData.experienceRange != 0) {
+        
+        const maxExp = parseFloat(filterData.experienceRange);
+        filterCriteria.experience = { $lte: maxExp };
+      }
+
+      if (searchText.trim() !== ''&& searchText!==null) {
+        filterCriteria.jobRole = { $regex: searchText.trim(), $options: 'i' };
       }
     }
 
@@ -262,9 +268,9 @@ export const addJobApplication = async (req: Request, res: Response): Promise<vo
     
 
     await User.updateOne({ _id: applicantId }, { $inc: { dailyJobsApplied: 1 } });
-    const user=await User.find({_id:applicantId})
+    const user=await User.findOne({_id:applicantId})
 
-    res.status(201).json({ message: 'Job application submitted ', jobApplication: newJobApplication ,user:user});
+    res.status(201).json({ message: 'Job application submitted ', jobApplication: newJobApplication ,user});
   } catch (error) {
     console.error('Error adding job application:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -294,7 +300,6 @@ export const updateApplicationStatus = async (req: Request, res: Response): Prom
 
     const jobs = await Job.find({ userId });
     const job = await Job.findOne({_id:jobApplication.jobId})
-
     const jobIds = jobs.map((job) => job._id);
     const applications = await JobApplication.find({ jobId: { $in: jobIds }})
     .populate({

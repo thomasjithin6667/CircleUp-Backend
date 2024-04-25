@@ -4,7 +4,7 @@ const router =express.Router()
 
 import asyncHandler from "express-async-handler";
 import Admin from "../models/admin/adminModel";
-import generateToken from "../utils/generateToken";
+
 import bcrypt from "bcryptjs";
 import User from "../models/user/userModel";
 import JobCategory from "../models/jobCategory/jobCategoryModel";
@@ -18,24 +18,24 @@ import generateAdminToken from "../utils/generateAdminToken";
 // @access  Private
 
 export const Login = asyncHandler(async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const admin = await Admin.findOne({ email });
-    console.log(admin);
-    
-    
-    if (admin && password=== admin.password) {
-        res.status(200).json({
-          message: "Login Successful",
-            _id: admin.id,
-            name: admin.name,
-            email: admin.email,
-            profileImg: admin.profileImg,
-            token: generateAdminToken(admin.id),
-        });
-    } else {
-        res.status(400);
-        throw new Error("Invalid Credentials");
-    }
+  const { email, password } = req.body;
+  const admin = await Admin.findOne({ email });
+
+  
+  
+  if (admin && password=== admin.password) {
+      res.status(200).json({
+        message: "Login Successful",
+          _id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          profileImg: admin.profileImg,
+          token: generateAdminToken(admin.id),
+      });
+  } else {
+      res.status(400);
+      throw new Error("Invalid Credentials");
+  }
 });
 
 

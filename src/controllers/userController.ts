@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import User from "../models/user/userModel";
 import bcrypt from "bcryptjs";
-import generateToken from "../utils/generateToken";
 import sendVerifyMail from "../utils/sendVerifyMail";
 import speakeasy from "speakeasy";
-import  { IUser, UserType } from '../models/user/userTypes';
-import { log } from "console";
+import  {UserType } from '../models/user/userTypes';
 import Connections from "../models/connections/connectionModel";
+import jwt from "jsonwebtoken";
+import generateToken from "../utils/generateToken";
+import generateRefreshToken from "../utils/generateRefreshToken";
 
 // @desc    Register new User
 // @route   USER /register
@@ -19,7 +20,7 @@ export const registerUser = asyncHandler(
     if (!username || !email || !password) {
       throw new Error("Please add fields");
     }
-    console.log(username, email, password);
+
 
     const userExist = await User.findOne({ email });
 
@@ -136,7 +137,7 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
 
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log(req.body);
+
   
   const user = await User.findOne({ email });
 
@@ -152,10 +153,14 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   if (user && (await bcrypt.compare(password, user.password))) {
 
     const userData= await User.findOne({email},{password:0})
+  
+
+    
     res.json({ message: "Login Sucessful" ,
       
       user:userData,
-      token: generateToken(user.id),
+      token:  generateToken(user.id),
+      refreshToken:generateRefreshToken(user.id)
 
     });
   } else {
@@ -185,11 +190,15 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
       if (userExist) {
  
         const userData= await User.findOne({email},{password:0})
-        res.json({
-          message: "Login Successful",
-          user:userData,
-          token: generateToken(userExist.id),
-        });
+
+    
+        res.json({ message: "Login Sucessful" ,
+      
+        user:userData,
+        token:  generateToken(userExist.id),
+        refreshToken:generateRefreshToken(userExist.id)
+  
+      });
         return;
       }
     }
@@ -206,12 +215,16 @@ export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
       isGoogle: true,
     });
 
-    const token = generateToken(newUser.id);
+   
     const userData= await User.findOne({email},{password:0})
-    res.status(200).json({
-      message: "Login Successful",
+  
+    
+    res.json({ message: "Login Sucessful" ,
+      
       user:userData,
-      token: token,
+      token:  generateToken(newUser.id),
+      refreshToken:generateRefreshToken(newUser.id)
+
     });
   } catch (error) {
     console.error("Error in Google authentication:", error);
@@ -491,7 +504,7 @@ export const getUserDetails = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = req.params;
   
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).populate('profile').populate('companyProfile');
     const connections = await Connections.findOne({ userId:userId });
 
     if (user) {
@@ -499,6 +512,41 @@ export const getUserDetails = asyncHandler(
     } else {
       res.status(404);
       throw new Error(" user Not found");
+    }
+  }
+);
+
+
+
+
+
+export const verifyRefreshToken= asyncHandler(
+  async (req: Request, res: Response) => {
+    const { refreshToken } = req.body; 
+
+    if (!refreshToken) {
+      res.status(400).json({ message: "Refresh token is required" });
+      return;
+    }
+
+    try {
+      const decoded: any = jwt.verify(
+        refreshToken,
+        process.env.JWT_SECRET as string
+      );
+
+      const user = await User.findById(decoded.id);
+   
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      const  accessToken = generateToken(user.id);
+      res.json({ accessToken });
+    } catch (error) {
+      console.error("Error verifying refresh token:", error);
+      res.status(401).json({ message: "Invalid refresh token" });
     }
   }
 );

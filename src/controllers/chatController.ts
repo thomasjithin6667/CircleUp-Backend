@@ -99,11 +99,21 @@ export const findConversationController = asyncHandler(
 
 export const addMessageController = asyncHandler(async (req: Request, res: Response) => {
   const newMessage = new Message(req.body);
-console.log("reached here add me");
+  const { conversationId, text } = req.body;
 
   try {
     const savedMessage = await newMessage.save();
-    res.status(200).json(savedMessage);
+    const message = await Message.findById(savedMessage._id).populate('sender');
+    const conversation = await Conversation.findById(conversationId);
+
+    if (conversation) {
+      conversation.lastMessage = text;
+      await conversation.save();
+    } else {
+      throw new Error('Conversation not found');
+    }
+
+    res.status(200).json(message);
   } catch (err) {
     res.status(500).json(err);
   }

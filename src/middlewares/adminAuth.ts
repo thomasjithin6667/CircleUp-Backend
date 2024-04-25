@@ -21,17 +21,24 @@ const protectAdmin = asyncHandler(
           token,
           process.env.JWT_SECRET as string
         );
-        console.log(decoded.role);
+
         if (decoded.role !== "admin") {
           res.status(401);
           throw new Error("Not authorized");
         }
 
+        req.user = decoded; 
+
         next();
-      } catch (error) {
+      } catch (error:any) {
         console.log(error);
-        res.status(401);
-        throw new Error("Not authorized");
+        if (error.name === "TokenExpiredError") {
+          res.status(401);
+          throw new Error("Token expired");
+        } else {
+          res.status(401);
+          throw new Error("Not authorized");
+        }
       }
     }
 

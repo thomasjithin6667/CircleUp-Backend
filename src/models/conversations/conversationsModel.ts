@@ -7,6 +7,9 @@ const ConversationSchema = new Schema<ConversationDocument>(
         type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
       required: true,
     },
+    lastMessage:{
+      type:String
+    }
   },
   { timestamps: true }
 );
