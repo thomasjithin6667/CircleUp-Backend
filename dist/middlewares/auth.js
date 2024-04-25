@@ -24,13 +24,27 @@ const protect = (0, express_async_handler_1.default)((req, res, next) => __await
             token = req.headers.authorization.split(" ")[1];
             req.token = token;
             const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+            if (decoded.role !== "user") {
+                res.status(401);
+                throw new Error("Not authorized");
+            }
             req.user = yield userModel_1.default.findById(decoded.id).select("-password");
+            if (req.user.isBlocked) {
+                res.status(401);
+                throw new Error("User Is Blocked");
+            }
             next();
         }
         catch (error) {
             console.log(error);
-            res.status(401);
-            throw new Error("Not authorized");
+            if (error.name === "TokenExpiredError") {
+                res.status(401);
+                throw new Error("Token expired");
+            }
+            else {
+                res.status(401);
+                throw new Error("Not authorized");
+            }
         }
     }
     if (!token) {

@@ -17,20 +17,22 @@ const sendVerifyMail = (req, name, email) => __awaiter(void 0, void 0, void 0, f
     try {
         const sessionData = req.session;
         const otp = sessionData.otp;
-        console.log(otp);
         sessionData.otpGeneratedTime = Date.now();
         const transporter = nodemailer_1.default.createTransport({
             host: "smtp.gmail.com",
             port: 587,
             secure: false,
             requireTLS: true,
+            tls: {
+                rejectUnauthorized: false,
+            },
             auth: {
                 user: "circleupindia@gmail.com",
                 pass: "yonq znss qruc qrjh",
             },
         });
         const mailOptions = {
-            from: "neganishere73@gmail.com",
+            from: "circleupindia@gmail.com",
             to: email,
             subject: "For verification purpose",
             html: `<html lang="en">

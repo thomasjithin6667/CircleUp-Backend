@@ -1,5 +1,4 @@
 "use strict";
-// userModel.ts
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -26,7 +25,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const userTypes_1 = require("./userTypes");
-// Create the user schema
 const UserSchema = new mongoose_1.Schema({
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -34,32 +32,37 @@ const UserSchema = new mongoose_1.Schema({
     isHiring: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
+    isGoogle: { type: Boolean, default: false },
+    isFacebook: { type: Boolean, default: false },
+    isPremium: { type: Boolean, default: false },
+    dailyJobsApplied: { type: Number, default: 0 },
+    premiumExpiryDate: { type: Date, required: false },
     userType: { type: String, enum: Object.values(userTypes_1.UserType) },
     profile: {
-        type: {
-            about: { type: String },
-            location: { type: String },
-            qualification: [{ course: String, institution: String, yearOfCompletion: Number }],
-            experience: [{ jobPosition: String, yearOfJoining: Number, companyName: String }],
-            skills: [{ type: String }],
-            resume: { type: String },
-            gender: { type: String },
-        },
+        fullname: { type: String },
+        about: { type: String },
+        location: { type: String },
+        qualification: [{ course: String, institution: String, yearOfCompletion: Number }],
+        experience: [{ jobPosition: String, yearOfJoining: Number, companyName: String }],
+        skills: [{ type: String }],
+        resume: { type: String },
+        gender: { type: String },
+        dateOfBirth: { type: Date },
+        designation: { type: String },
     },
     companyProfile: {
-        type: {
-            companyName: { type: String },
-            companyLocation: { type: String },
-            aboutCompany: { type: String },
-            noOfEmployees: { type: Number },
-        },
+        companyName: { type: String },
+        companyLocation: { type: String },
+        aboutCompany: { type: String },
+        noOfEmployees: { type: Number },
+        establishedOn: { type: Date },
+        companyType: { type: String }
     },
     phone: { type: String },
     savedPosts: [{ type: mongoose_1.default.Types.ObjectId, ref: 'Post' }],
     savedJobs: [{ type: mongoose_1.default.Types.ObjectId, ref: 'Job' }],
     isActive: { type: Boolean, default: true },
-    profileImageUrl: { type: String },
+    profileImageUrl: { type: String, default: 'https://i.postimg.cc/CxTwsVFy/default-user-profile.png' },
 }, { timestamps: true });
-// Create and export the User model
 const User = mongoose_1.default.model('User', UserSchema);
 exports.default = User;

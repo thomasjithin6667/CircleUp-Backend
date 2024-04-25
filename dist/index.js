@@ -10,28 +10,56 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const errorMiddleware_1 = __importDefault(require("./middlewares/errorMiddleware"));
 const express_session_1 = __importDefault(require("express-session"));
+const postRoutes_1 = __importDefault(require("./routes/postRoutes"));
+const connectionRoutes_1 = __importDefault(require("./routes/connectionRoutes"));
+const jobRoutes_1 = __importDefault(require("./routes/jobRoutes"));
+const chatRoutes_1 = __importDefault(require("./routes/chatRoutes"));
 const cors_1 = __importDefault(require("cors"));
+const scheduledTask_1 = __importDefault(require("./utils/scheduledTask"));
+const path = require('path');
+const socket_io_1 = require("socket.io");
+const socket_1 = __importDefault(require("./utils/socket/socket"));
+const http_1 = __importDefault(require("http"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
-    origin: 'http://localhost:5173'
+    origin: 'http://circleup.site/',
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
 }));
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+app.use('/uploads', express_1.default.static(path.join(__dirname, 'public', 'uploads')));
 const sessionSecret = process.env.SESSION_SECRET || 'default_secret_key';
 app.use((0, express_session_1.default)({
     secret: sessionSecret,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
         maxAge: 24 * 60 * 60 * 1000,
     },
 }));
 app.use('/api/', userRoutes_1.default);
 app.use('/api/admin', adminRoutes_1.default);
+app.use('/api/post', postRoutes_1.default);
+app.use("/api/connection", connectionRoutes_1.default);
+app.use('/api/job', jobRoutes_1.default);
+app.use("/api/chat", chatRoutes_1.default);
+(0, scheduledTask_1.default)();
+// Create HTTP server
+const server = http_1.default.createServer(app);
+const io = new socket_io_1.Server(server, {
+    cors: { origin: 'http://circleup.site/' }
+});
+// Configure Socket.IO
+(0, socket_1.default)(io);
 app.use(errorMiddleware_1.default);
 (0, db_1.default)();
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
