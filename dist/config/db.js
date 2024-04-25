@@ -16,7 +16,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         ;
-        yield mongoose_1.default.connect("mongodb+srv://thomasjithin:thomas989@cluster0.uvgqy5i.mongodb.net/CircleUp");
+        yield mongoose_1.default.connect(process.env.MONGO_URL);
         console.log("Connected to MongoDB");
     }
     catch (error) {
