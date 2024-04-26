@@ -46,8 +46,8 @@ exports.initiatecheckout = (0, express_async_handler_1.default)((req, res) => __
                 }
             ],
             mode: "payment",
-            success_url: process.env.SUCCESS_URL,
-            cancel_url: process.env.CANCEL_URL,
+            success_url: "http://circleup.site/premium/payment-success",
+            cancel_url: "http://circleup.site/premium/payment-failed",
             customer_email: user === null || user === void 0 ? void 0 : user.email,
             billing_address_collection: 'required',
         });

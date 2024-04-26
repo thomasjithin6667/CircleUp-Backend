@@ -46,8 +46,8 @@ export const initiatecheckout = asyncHandler(async (req: Request, res: Response)
         }
       ],
       mode: "payment",
-      success_url:process.env.SUCCESS_URL as string ,
-      cancel_url: process.env.CANCEL_URL as string,
+      success_url:"http://circleup.site/premium/payment-success" ,
+      cancel_url: "http://circleup.site/premium/payment-failed",
       customer_email: user?.email,
       billing_address_collection: 'required',
     });
