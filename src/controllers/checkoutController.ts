@@ -11,7 +11,7 @@ import Stripe from "stripe";
 
 
 
-const stripe = new Stripe("sk_test_51P2YQySACYjhnZZxm0GvetlVuW5Nl46WV0jvslrojCK4wA5B12ExdxbpAatnNQuov3W1buHTqMFjoDoUD9F6FVJn00z1IdAqVn");
+const stripe = new Stripe(process.env.STRIPE_SECRET as string);
 
 
 
@@ -46,8 +46,8 @@ export const initiatecheckout = asyncHandler(async (req: Request, res: Response)
         }
       ],
       mode: "payment",
-      success_url:"http://circleup.site/premium/payment-success" ,
-      cancel_url: "http://circleup.site/premium/payment-failed",
+      success_url:process.env.SUCCESS_URL as string ,
+      cancel_url: process.env.CANCEL_URL as string,
       customer_email: user?.email,
       billing_address_collection: 'required',
     });
