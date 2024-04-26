@@ -34,17 +34,18 @@ router.post("/google-auth", googleAuth);
 router.post("/forgot-password", forgotPassword);
 router.post("/forgot-otp", forgotOtp);
 router.put("/reset-password", resetPassword);
-router.put("/set-preferences", updateUserTypeAndHiring);
-router.put("/set-user-role", updateUserRole);
-router.put("/set-basic-information",updateBasicInformation);
-router.post('/user-suggestions',userSuggestions);
-router.get('/user-details/:userId',getUserDetails);
-router.post("/checkout-user", initiatecheckout);
-router.post("/validate-payment",validatePayment);
-router.post("/get-transactions",getPremiumUserData);
-router.post("/get-notifications",getNotifications )
-router.post("/refresh-token",verifyRefreshToken)
-router.get("/search",searchAllCollections)
+router.put("/set-preferences",protect, updateUserTypeAndHiring);
+router.put("/set-user-role",protect, updateUserRole);
+router.put("/set-basic-information",protect,updateBasicInformation);
+router.post('/user-suggestions',protect,userSuggestions);
+router.get('/user-details/:userId',protect,getUserDetails);
+router.post("/checkout-user",protect, initiatecheckout);
+router.post("/validate-payment",protect,validatePayment);
+router.post("/get-transactions",protect,getPremiumUserData);
+router.post("/get-notifications",protect,getNotifications )
+router.post("/refresh-token",protect,verifyRefreshToken)
+router.get("/search",protect,searchAllCollections)
+
 
 
  

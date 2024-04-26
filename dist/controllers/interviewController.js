@@ -95,9 +95,9 @@ exports.editInterview = editInterview;
 // Controller function to change the status of an interview
 const setInterviewStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.params;
-        const { status } = req.body;
-        const existingInterview = yield interviewModel_1.default.findById(id);
+        const { status, interviewId } = req.body;
+        console.log(req.body);
+        const existingInterview = yield interviewModel_1.default.findById(interviewId);
         if (!existingInterview) {
             res.status(404).json({ message: 'Interview not found' });
             return;

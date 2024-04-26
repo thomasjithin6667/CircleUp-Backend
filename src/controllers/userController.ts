@@ -14,42 +14,48 @@ import generateRefreshToken from "../utils/generateRefreshToken";
 // @route   USER /register
 // @access  Public
 
-export const registerUser = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-      throw new Error("Please add fields");
-    }
+export const registerUser = asyncHandler(async (req: Request, res: Response) => {
+  const { username, email, password } = req.body;
+  console.log("reached hearad");
+  
+  if (!username || !email || !password) {
 
-
-    const userExist = await User.findOne({ email });
-
-    if (userExist) {
-      res.status(400);
-      throw new Error("User already exists");
-    }
-
-    const otp = speakeasy.totp({
-      secret: speakeasy.generateSecret({ length: 20 }).base32,
-      digits: 4, 
-    });
-    console.log("user Otp = "+otp);
-    
-
-    const sessionData = req.session!;
-    sessionData.userDetails = { username, email, password };
-    sessionData.otp = otp;
-    sessionData.otpGeneratedTime = Date.now();
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    sessionData.userDetails!.password = hashedPassword;
-    sendVerifyMail(req, username, email);
-
-    res.status(200).json({ message: "OTP sent for verification", email,otp});
+    throw new Error("Please add fields");
   }
-);
+
+  const existingUser = await User.findOne({ username });
+  if (existingUser) {
+    res.status(400);
+  
+    throw new Error("Username is already taken");
+  }
+
+  const userExist = await User.findOne({ email });
+  if (userExist) {
+   
+    res.status(400);
+    throw new Error("Email is already registered");
+  }
+
+  const otp = speakeasy.totp({
+    secret: speakeasy.generateSecret({ length: 20 }).base32,
+    digits: 4,
+  });
+  console.log("user Otp = " + otp);
+
+  const sessionData = req.session!;
+  sessionData.userDetails = { username, email, password };
+  sessionData.otp = otp;
+  sessionData.otpGeneratedTime = Date.now();
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  sessionData.userDetails!.password = hashedPassword;
+  sendVerifyMail(req, username, email);
+
+  res.status(200).json({ message: "OTP sent for verification", email, otp });
+});
 
 
 // @desc    Register OTP Verification

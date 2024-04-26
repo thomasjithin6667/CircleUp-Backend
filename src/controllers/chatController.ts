@@ -8,52 +8,39 @@ import { log } from "console";
 // @route   get /chat/add-conversation
 // @access  Public
 
-
-export const addConversationController = async (req: Request, res: Response) => {
-  try {
+export const addConversationController = asyncHandler(
+  async (req: Request, res: Response) => {
+    console.log(req.body);
     const { senderId, receiverId } = req.body;
-    const existingConversation = await Conversation.findOne({
+    const existConversation = await Conversation.findOne({
       members: { $all: [senderId, receiverId] },
+    }).populate({
+      path: "members",
+      select: "username profileImageUrl ",
     });
-
-    if (existingConversation) {
-      const conversation = await Conversation.find({
-        members: { $all: [senderId, receiverId]},
-      }).populate({
-        path: 'members',
-        select: 'username profileImageUrl'
-      });
-      const conversations = await Conversation.find({
-        members: { $in: [senderId] },
-      }).populate({
-        path: 'members',
-        select: 'username profileImageUrl'
-      });
-
-      return res.status(200).json({conversation,conversations});
+    if (existConversation) {
+      res.status(200).json(existConversation);
+      return;
     }
-    
 
     const newConversation = new Conversation({
       members: [senderId, receiverId],
     });
 
-    const conversation = await newConversation.save();
-    const conversations = await Conversation.find({
-      members: { $in: [senderId] },
-    }).populate({
-      path: 'members',
-      select: 'username profileImageUrl'
-    });
-
-    res.status(200).json({conversation,conversations});
-
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    try {
+      const savedConversation = await newConversation.save();
+      const conversation = await Conversation.findById(
+        savedConversation._id
+      ).populate({
+        path: "members",
+        select: "username profileImageUrl ",
+      });
+      res.status(200).json(conversation);
+    } catch (err) {
+      res.status(500).json(err);
+    }
   }
-};
-
+);
 
 // @desc    Get conversations of a user
 // @route   get /chat/get-conversation
@@ -67,7 +54,7 @@ export const getUserConversationController = asyncHandler(
       }).populate({
         path: 'members',
         select: 'username profileImageUrl'
-      });
+      }).sort({updatedAt:-1});
       res.status(200).json(conversation);
     } catch (err) {
       res.status(500).json(err);
@@ -136,3 +123,50 @@ export const getMessagesController = asyncHandler(async (req: Request, res: Resp
     res.status(500).json(err);
   }
 });
+
+
+// @desc    get Message ReadController
+// @route   get /chat/get-message
+// @access  Public
+
+
+
+
+export const setMessageReadController = asyncHandler(
+  async (req: Request, res: Response) => {
+    try {
+      const { conversationId, userId } = req.body;
+      console.log(conversationId, userId + "Reading Messages");
+      const messages = await Message.updateMany(
+        { conversationId: conversationId, sender: { $ne: userId } },
+        { $set: { isRead: true } }
+      );
+      res.status(200).json(messages);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+);
+
+
+// @desc    get Unread Messages
+// @route   get /chat/get-message
+// @access  Public
+
+export const getUnreadMessagesController = asyncHandler(
+  async (req: Request, res: Response) => {
+    try {
+      const { conversationId, userId } = req.body;
+      console.log(conversationId, userId + "unreadMessages getting....");
+      const messages = await Message.find({
+        conversationId: conversationId,
+        sender: { $ne: userId },
+        isRead: false,
+      });
+      console.log(messages);
+      res.status(200).json(messages);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+);

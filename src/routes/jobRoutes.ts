@@ -3,6 +3,7 @@ import {
 addJob, addJobApplication, cancelJobApplication, editJob, employeeApplications, employerApplications, getAllJobDetails, getFormSelectData, jobDetails, listActiveJobs,
 listUserJobs,
 updateApplicationStatus,
+userJobBlock,
 viewJob
 } from "../controllers/jobController";
 import { Request, Response, NextFunction } from 'express';
@@ -58,10 +59,11 @@ router.post('/get-all-job-details',protect,getAllJobDetails)
 router.patch('/cancel-job-application',protect,cancelJobApplication)
 router.post('/add-interview',protect,addInterview)
 router.put('/edit-interview',protect,editInterview)
-router.patch('/edit-interview-status',protect,setInterviewStatus)
+router.patch('/set-interview-status',protect,setInterviewStatus)
 router.post('/get-interviewee-interviews',protect,getInterviewsByIntervieweeId)
 router.post('/get-interviewer-interviews',protect,getInterviewsByInterviewerId)
 router.post('/get-job-interviews',protect,getInterviewsByJobId)
 router.get('/form-select-data',protect,getFormSelectData)
+router.post('/block-job',userJobBlock);
 
 export default router;

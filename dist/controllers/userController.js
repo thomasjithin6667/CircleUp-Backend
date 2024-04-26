@@ -27,13 +27,19 @@ const generateRefreshToken_1 = __importDefault(require("../utils/generateRefresh
 // @access  Public
 exports.registerUser = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, email, password } = req.body;
+    console.log("reached hearad");
     if (!username || !email || !password) {
         throw new Error("Please add fields");
+    }
+    const existingUser = yield userModel_1.default.findOne({ username });
+    if (existingUser) {
+        res.status(400);
+        throw new Error("Username is already taken");
     }
     const userExist = yield userModel_1.default.findOne({ email });
     if (userExist) {
         res.status(400);
-        throw new Error("User already exists");
+        throw new Error("Email is already registered");
     }
     const otp = speakeasy_1.default.totp({
         secret: speakeasy_1.default.generateSecret({ length: 20 }).base32,

@@ -12,20 +12,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.jobBlock = exports.getJobs = exports.blockJobCategory = exports.getJobCategory = exports.addJobCategory = exports.postBlock = exports.userBlock = exports.getPosts = exports.getUsers = exports.Login = void 0;
-const express_1 = __importDefault(require("express"));
+exports.dashboardStatsController = exports.chartDataController = exports.getTransactionsController = exports.jobBlockController = exports.getJobsController = exports.blockJobCategoryController = exports.getJobCategoryController = exports.addJobCategoryController = exports.postBlockController = exports.userBlockController = exports.getReportsController = exports.getPostsController = exports.getUsersController = exports.LoginController = void 0;
 const postModel_1 = __importDefault(require("../models/post/postModel"));
-const router = express_1.default.Router();
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const adminModel_1 = __importDefault(require("../models/admin/adminModel"));
 const userModel_1 = __importDefault(require("../models/user/userModel"));
 const jobCategoryModel_1 = __importDefault(require("../models/jobCategory/jobCategoryModel"));
 const jobModel_1 = __importDefault(require("../models/jobs/jobModel"));
 const generateAdminToken_1 = __importDefault(require("../utils/generateAdminToken"));
+const reportModel_1 = __importDefault(require("../models/reports/reportModel"));
+const premiumModel_1 = __importDefault(require("../models/premium/premiumModel"));
 // @desc    Admin Login
 // @route   ADMIN /Admin/login
 // @access  Private
-exports.Login = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.LoginController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     const admin = yield adminModel_1.default.findOne({ email });
     if (admin && password === admin.password) {
@@ -46,8 +46,7 @@ exports.Login = (0, express_async_handler_1.default)((req, res) => __awaiter(voi
 // @desc    Get all users
 // @route   ADMIN /admin/get-users
 // @access  Private
-exports.getUsers = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("hello");
+exports.getUsersController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
@@ -64,7 +63,7 @@ exports.getUsers = (0, express_async_handler_1.default)((req, res) => __awaiter(
 // @desc    Get all posts
 // @route   ADMIN /admin/get-posts
 // @access  Private
-exports.getPosts = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getPostsController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
@@ -84,10 +83,40 @@ exports.getPosts = (0, express_async_handler_1.default)((req, res) => __awaiter(
         res.status(404).json({ message: "No Posts Found" });
     }
 }));
+// @desc    Get all reports
+// @route   ADMIN /admin/get-posts
+// @access  Private
+exports.getReportsController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
+    const totalPosts = yield postModel_1.default.countDocuments({ isDeleted: false });
+    const totalPages = Math.ceil(totalPosts / limit);
+    const reports = yield reportModel_1.default.find()
+        .populate({
+        path: 'userId',
+        select: 'username profileImageUrl email'
+    })
+        .populate({
+        path: 'postId',
+        populate: {
+            path: 'userId',
+            select: 'username profileImageUrl email'
+        }
+    })
+        .skip(skip)
+        .limit(limit);
+    if (reports.length > 0) {
+        res.status(200).json({ reports, totalPages });
+    }
+    else {
+        res.status(404).json({ message: "No Posts Found" });
+    }
+}));
 // @desc    Block Users
 // @route   ADMIN /admin/block-user
 // @access  Private
-exports.userBlock = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.userBlockController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.body.userId;
     console.log(req.body);
     const user = yield userModel_1.default.findById(userId);
@@ -104,7 +133,7 @@ exports.userBlock = (0, express_async_handler_1.default)((req, res) => __awaiter
 // @desc    Block post
 // @route   ADMIN /admin/block-user
 // @access  Private
-exports.postBlock = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postBlockController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const postId = req.body.postId;
     const post = yield postModel_1.default.findById(postId);
     if (!post) {
@@ -120,10 +149,9 @@ exports.postBlock = (0, express_async_handler_1.default)((req, res) => __awaiter
 // @desc    Add job category
 // @route   ADMIN /admin/get-users
 // @access  Private
-exports.addJobCategory = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addJobCategoryController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("Reached here");
     const { jobCategory } = req.body;
-    console.log(jobCategory);
     const existingJobCategory = yield jobCategoryModel_1.default.find({ jobCategory });
     if (existingJobCategory.length > 0) {
         res.status(404);
@@ -138,9 +166,9 @@ exports.addJobCategory = (0, express_async_handler_1.default)((req, res) => __aw
 // @desc    Get all job Categoory
 // @route   ADMIN /admin/get-users
 // @access  Private
-exports.getJobCategory = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getJobCategoryController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = 6;
+    const limit = 5;
     const skip = (page - 1) * limit;
     const totalJobCategories = yield jobCategoryModel_1.default.countDocuments({});
     const totalPages = Math.ceil(totalJobCategories / limit);
@@ -158,7 +186,7 @@ exports.getJobCategory = (0, express_async_handler_1.default)((req, res) => __aw
 // @desc     block job Category 
 // @route   ADMIN /admin/block-job-category
 // @access  Private
-exports.blockJobCategory = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.blockJobCategoryController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const jobCategoryId = req.body.jobCategoryId;
     console.log(req.body);
     const jobCategory = yield jobCategoryModel_1.default.findById(jobCategoryId);
@@ -175,7 +203,7 @@ exports.blockJobCategory = (0, express_async_handler_1.default)((req, res) => __
 // @desc    Get all posts
 // @route   ADMIN /admin/get-posts
 // @access  Private
-exports.getJobs = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getJobsController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = 6;
     const skip = (page - 1) * limit;
@@ -195,7 +223,7 @@ exports.getJobs = (0, express_async_handler_1.default)((req, res) => __awaiter(v
 // @desc    Block job
 // @route   ADMIN /admin/block-user
 // @access  Private
-exports.jobBlock = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.jobBlockController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const jobId = req.body.jobId;
     const job = yield jobModel_1.default.findById(jobId);
     if (!job) {
@@ -207,4 +235,89 @@ exports.jobBlock = (0, express_async_handler_1.default)((req, res) => __awaiter(
     const jobs = yield jobModel_1.default.find({ isDeleted: false }).populate('userId');
     const blocked = job.isAdminBlocked ? "Blocked" : "Unblocked";
     res.status(200).json({ jobs, message: `Job has been ${blocked}` });
+}));
+// @desc    get Transactions
+// @route   ADMIN /admin/transactions
+// @access  Public
+exports.getTransactionsController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
+    const totalTransactions = yield premiumModel_1.default.countDocuments({});
+    const totalPages = Math.ceil(totalTransactions / limit);
+    const transactions = yield premiumModel_1.default.find()
+        .populate({
+        path: "userId",
+        select: "username profileImageUrl email isPremium",
+    }).skip(skip).limit(limit);
+    if (transactions.length > 0) {
+        res.status(200).json({ transactions, totalPages });
+    }
+    else {
+        res.status(404).json({ message: "Transactions Not Found" });
+    }
+}));
+// @desc    Chart Data
+// @route   ADMIN /admin/chart-data
+// @access  Public
+exports.chartDataController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userJoinStats = yield userModel_1.default.aggregate([
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                userCount: { $sum: 1 },
+            },
+        },
+        {
+            $sort: { _id: 1 },
+        },
+    ]);
+    const postCreationStats = yield postModel_1.default.aggregate([
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+                postCount: { $sum: 1 },
+            },
+        },
+        {
+            $sort: { _id: 1 },
+        },
+    ]);
+    const jobCreationStats = yield jobModel_1.default.aggregate([
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                jobCount: { $sum: 1 },
+            },
+        },
+        {
+            $sort: { _id: 1 },
+        },
+    ]);
+    const chartData = {
+        userJoinStats,
+        postCreationStats,
+        jobCreationStats,
+    };
+    res.json(chartData);
+}));
+// @desc    Dashboard Stats
+// @route   ADMIN /admin/dashboard-stats
+// @access  Public
+exports.dashboardStatsController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const totalUsers = yield userModel_1.default.countDocuments();
+    const totalPosts = yield postModel_1.default.countDocuments();
+    const totalJobs = yield jobModel_1.default.countDocuments();
+    const totalSales = yield premiumModel_1.default.countDocuments();
+    const totalJobsCategories = yield jobCategoryModel_1.default.countDocuments();
+    const totalReports = yield reportModel_1.default.countDocuments();
+    const stats = {
+        totalUsers,
+        totalPosts,
+        totalJobs,
+        totalSales,
+        totalJobsCategories,
+        totalReports,
+    };
+    res.status(200).json(stats);
 }));

@@ -16,6 +16,10 @@ const MessageSchema = new Schema<MessageDocument>(
       type: String,
       required: true,
     },
+    isRead:{
+      type:Boolean,
+      default:false
+    }
   },
   { timestamps: true }
 );

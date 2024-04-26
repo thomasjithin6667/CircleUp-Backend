@@ -47,9 +47,10 @@ router.post('/get-all-job-details', auth_1.protect, jobController_1.getAllJobDet
 router.patch('/cancel-job-application', auth_1.protect, jobController_1.cancelJobApplication);
 router.post('/add-interview', auth_1.protect, interviewController_1.addInterview);
 router.put('/edit-interview', auth_1.protect, interviewController_1.editInterview);
-router.patch('/edit-interview-status', auth_1.protect, interviewController_1.setInterviewStatus);
+router.patch('/set-interview-status', auth_1.protect, interviewController_1.setInterviewStatus);
 router.post('/get-interviewee-interviews', auth_1.protect, interviewController_1.getInterviewsByIntervieweeId);
 router.post('/get-interviewer-interviews', auth_1.protect, interviewController_1.getInterviewsByInterviewerId);
 router.post('/get-job-interviews', auth_1.protect, interviewController_1.getInterviewsByJobId);
 router.get('/form-select-data', auth_1.protect, jobController_1.getFormSelectData);
+router.post('/block-job', jobController_1.userJobBlock);
 exports.default = router;

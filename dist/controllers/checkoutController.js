@@ -19,7 +19,7 @@ const userModel_1 = __importDefault(require("../models/user/userModel"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const stripe_1 = __importDefault(require("stripe"));
-const stripe = new stripe_1.default(process.env.STRIPE_SECRET);
+const stripe = new stripe_1.default("sk_test_51P2YQySACYjhnZZxm0GvetlVuW5Nl46WV0jvslrojCK4wA5B12ExdxbpAatnNQuov3W1buHTqMFjoDoUD9F6FVJn00z1IdAqVn");
 // @desc    Generate stripe session
 // @route   get /post/get-post
 // @access  Public

@@ -119,11 +119,12 @@ export const editInterview = async (req: Request, res: Response): Promise<void> 
 // Controller function to change the status of an interview
 export const setInterviewStatus = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params; 
-      const { status } = req.body;
+
+      const { status ,interviewId} = req.body;
+  console.log(req.body);
   
 
-      const existingInterview = await Interview.findById(id);
+      const existingInterview = await Interview.findById(interviewId);
       if (!existingInterview) {
         res.status(404).json({ message: 'Interview not found' });
         return;

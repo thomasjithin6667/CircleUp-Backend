@@ -15,6 +15,10 @@ const MessageSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
+    isRead: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 const Message = (0, mongoose_1.model)('Message', MessageSchema);
 exports.default = Message;

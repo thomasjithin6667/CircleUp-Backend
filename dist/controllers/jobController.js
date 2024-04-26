@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFormSelectData = exports.getAllJobDetails = exports.employerApplications = exports.viewJob = exports.employeeApplications = exports.cancelJobApplication = exports.updateApplicationStatus = exports.addJobApplication = exports.jobDetails = exports.listUserJobs = exports.listActiveJobs = exports.editJob = exports.addJob = void 0;
+exports.userJobBlock = exports.getFormSelectData = exports.getAllJobDetails = exports.employerApplications = exports.viewJob = exports.employeeApplications = exports.cancelJobApplication = exports.updateApplicationStatus = exports.addJobApplication = exports.jobDetails = exports.listUserJobs = exports.listActiveJobs = exports.editJob = exports.addJob = void 0;
 const jobModel_1 = __importDefault(require("../models/jobs/jobModel"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const userModel_1 = __importDefault(require("../models/user/userModel"));
@@ -82,7 +82,6 @@ const listActiveJobs = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const { userId, filterData } = req.body;
         const searchText = (filterData === null || filterData === void 0 ? void 0 : filterData.search) || '';
-        console.log(filterData);
         const userApplications = yield jobApplicationModel_1.default.find({
             applicantId: userId,
             isDeleted: { $ne: true },
@@ -91,6 +90,7 @@ const listActiveJobs = (req, res) => __awaiter(void 0, void 0, void 0, function*
             isDeleted: { $ne: true },
             userId: { $ne: userId },
             isAdminBlocked: false,
+            isBlocked: false,
             _id: { $nin: userApplications },
         };
         if (filterData) {
@@ -126,23 +126,29 @@ const listActiveJobs = (req, res) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.listActiveJobs = listActiveJobs;
 //list job
-const listUserJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.listUserJobs = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId } = req.body;
-        const jobs = yield jobModel_1.default.find({ userId: userId, isDeleted: { $ne: true } })
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = 5;
+        const skip = (page - 1) * limit;
+        const totalJobs = yield jobModel_1.default.countDocuments({ userId, isDeleted: { $ne: true } });
+        const totalPages = Math.ceil(totalJobs / limit);
+        const jobs = yield jobModel_1.default.find({ userId, isDeleted: { $ne: true } })
             .populate({
             path: 'userId',
             select: 'username profileImageUrl',
         })
+            .skip(skip)
+            .limit(limit)
             .exec();
-        res.status(200).json({ jobs });
+        res.status(200).json({ jobs, totalPages });
     }
     catch (error) {
         console.error('Error listing active jobs:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-});
-exports.listUserJobs = listUserJobs;
+}));
 //get job details
 const jobDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -366,3 +372,22 @@ const getFormSelectData = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getFormSelectData = getFormSelectData;
+// @desc    Block job
+// @route   USER /user/block-user
+// @access  Private
+exports.userJobBlock = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const jobId = req.body.jobId;
+    const job = yield jobModel_1.default.findById(jobId);
+    if (!job) {
+        res.status(400);
+        throw new Error('Post not found');
+    }
+    const userId = job === null || job === void 0 ? void 0 : job.userId;
+    job.isBlocked = !job.isBlocked;
+    yield job.save();
+    const jobs = yield jobModel_1.default.find({ userId: userId, isDeleted: { $ne: true } })
+        .populate('userId')
+        .exec();
+    const blocked = job.isAdminBlocked ? "Blocked" : "Unblocked";
+    res.status(200).json({ jobs, message: `Job has been ${blocked}` });
+}));

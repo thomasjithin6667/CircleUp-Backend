@@ -8,14 +8,15 @@ import {
   getConnection,
   cancelFollowRequest,
 } from "../controllers/connectionController";
+import { protect } from "../middlewares/auth";
 const router = express.Router();
 
 
-router.post('/follow',followUser);
-router.post('/unfollow',unFollowUser);
-router.post('/accept-request',acceptRequest);
-router.post('/reject-request',rejectRequest);
-router.post('/get-requested-users',getFollowRequests);
-router.post('/get-connection',getConnection); 
-router.post('/cancel-request',cancelFollowRequest);
+router.post('/follow',protect,followUser);
+router.post('/unfollow',protect,unFollowUser);
+router.post('/accept-request',protect,acceptRequest);
+router.post('/reject-request',protect,rejectRequest);
+router.post('/get-requested-users',protect,getFollowRequests);
+router.post('/get-connection',protect,getConnection); 
+router.post('/cancel-request',protect,cancelFollowRequest);
 export default router;

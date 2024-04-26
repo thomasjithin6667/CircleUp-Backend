@@ -1,15 +1,17 @@
 import express, { Request, Response } from "express";
 import Post from "../models/post/postModel";
-const router =express.Router()
+
 
 import asyncHandler from "express-async-handler";
 import Admin from "../models/admin/adminModel";
 
-import bcrypt from "bcryptjs";
+
 import User from "../models/user/userModel";
 import JobCategory from "../models/jobCategory/jobCategoryModel";
 import Job from "../models/jobs/jobModel";
 import generateAdminToken from "../utils/generateAdminToken";
+import Report from "../models/reports/reportModel";
+import PremiumUsers from "../models/premium/premiumModel";
 
 
 
@@ -17,7 +19,7 @@ import generateAdminToken from "../utils/generateAdminToken";
 // @route   ADMIN /Admin/login
 // @access  Private
 
-export const Login = asyncHandler(async (req: Request, res: Response) => {
+export const LoginController = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const admin = await Admin.findOne({ email });
 
@@ -44,8 +46,8 @@ export const Login = asyncHandler(async (req: Request, res: Response) => {
 // @route   ADMIN /admin/get-users
 // @access  Private
 
-export const getUsers = asyncHandler(async (req: Request, res: Response) => {
-  console.log("hello");
+export const getUsersController = asyncHandler(async (req: Request, res: Response) => {
+
 
   
   const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -69,7 +71,7 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
 // @route   ADMIN /admin/get-posts
 // @access  Private
 
-export const getPosts = asyncHandler(async (req: Request, res: Response) => {
+export const getPostsController = asyncHandler(async (req: Request, res: Response) => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 6;
   const skip: number = (page - 1) * limit;
@@ -92,11 +94,47 @@ export const getPosts = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+
+  // @desc    Get all reports
+// @route   ADMIN /admin/get-posts
+// @access  Private
+
+
+export const getReportsController = asyncHandler(async (req: Request, res: Response) => {
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 6;
+  const skip: number = (page - 1) * limit;
+
+  const totalPosts: number = await Post.countDocuments({ isDeleted: false });
+  const totalPages: number = Math.ceil(totalPosts / limit);
+
+  const reports = await Report.find()
+    .populate({
+      path: 'userId',
+      select: 'username profileImageUrl email'
+    })
+    .populate({
+      path: 'postId',
+      populate: {
+        path: 'userId',
+        select: 'username profileImageUrl email'
+      }
+    })
+    .skip(skip)
+    .limit(limit);
+
+  if (reports.length > 0) {
+    res.status(200).json({ reports, totalPages });
+  } else {
+    res.status(404).json({ message: "No Posts Found" });
+  }
+});
+
 // @desc    Block Users
 // @route   ADMIN /admin/block-user
 // @access  Private
 
-  export const userBlock = asyncHandler(async (req: Request, res: Response) => {
+  export const userBlockController = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.body.userId; 
     console.log(req.body)
     const user = await User.findById(userId)
@@ -119,7 +157,7 @@ export const getPosts = asyncHandler(async (req: Request, res: Response) => {
 // @route   ADMIN /admin/block-user
 // @access  Private
 
-export const postBlock = asyncHandler(async (req: Request, res: Response) => {
+export const postBlockController = asyncHandler(async (req: Request, res: Response) => {
   const postId = req.body.postId; 
  
   const post = await Post.findById(postId)
@@ -144,11 +182,11 @@ export const postBlock = asyncHandler(async (req: Request, res: Response) => {
 // @route   ADMIN /admin/get-users
 // @access  Private
 
-export const addJobCategory = asyncHandler(async (req: Request, res: Response) => {
+export const addJobCategoryController = asyncHandler(async (req: Request, res: Response) => {
    console.log("Reached here");
    
   const { jobCategory} = req.body;
-  console.log(jobCategory);
+
   
   const existingJobCategory= await JobCategory.find({jobCategory});
   if (existingJobCategory.length > 0) {
@@ -170,9 +208,9 @@ export const addJobCategory = asyncHandler(async (req: Request, res: Response) =
 // @route   ADMIN /admin/get-users
 // @access  Private
 
-export const getJobCategory = asyncHandler(async (req: Request, res: Response) => {
+export const getJobCategoryController = asyncHandler(async (req: Request, res: Response) => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 6; 
+  const limit: number = 5; 
   const skip: number = (page - 1) * limit;
 
   const totalJobCategories: number = await JobCategory.countDocuments({});
@@ -195,7 +233,7 @@ export const getJobCategory = asyncHandler(async (req: Request, res: Response) =
 // @route   ADMIN /admin/block-job-category
 // @access  Private
 
-export const blockJobCategory = asyncHandler(async (req: Request, res: Response) => {
+export const blockJobCategoryController = asyncHandler(async (req: Request, res: Response) => {
   const jobCategoryId = req.body.jobCategoryId; 
   console.log(req.body)
   const jobCategory = await JobCategory.findById(jobCategoryId)
@@ -218,7 +256,7 @@ export const blockJobCategory = asyncHandler(async (req: Request, res: Response)
   // @desc    Get all posts
 // @route   ADMIN /admin/get-posts
 // @access  Private
-export const getJobs = asyncHandler(async (req: Request, res: Response) => {
+export const getJobsController = asyncHandler(async (req: Request, res: Response) => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 6; 
   const skip: number = (page - 1) * limit;
@@ -242,7 +280,7 @@ export const getJobs = asyncHandler(async (req: Request, res: Response) => {
 // @route   ADMIN /admin/block-user
 // @access  Private
 
-export const jobBlock = asyncHandler(async (req: Request, res: Response) => {
+export const jobBlockController = asyncHandler(async (req: Request, res: Response) => {
   const jobId = req.body.jobId; 
  
   const job = await Job.findById(jobId)
@@ -261,3 +299,117 @@ export const jobBlock = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({ jobs,message:`Job has been ${blocked}`});
 });
 
+
+
+
+// @desc    get Transactions
+// @route   ADMIN /admin/transactions
+// @access  Public
+  
+export const getTransactionsController = asyncHandler(async (req: Request, res: Response) => {
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 6;
+  const skip: number = (page - 1) * limit;
+
+
+  const totalTransactions: number = await PremiumUsers.countDocuments({});
+  const totalPages: number = Math.ceil(totalTransactions/ limit);
+
+  const transactions = await PremiumUsers.find()  
+.populate({
+  path: "userId",
+  select: "username profileImageUrl email isPremium",
+}).skip(skip).limit(limit);
+
+
+  if ( transactions.length > 0) {
+    res.status(200).json({ transactions, totalPages });
+  } else {
+    res.status(404).json({ message: "Transactions Not Found" });
+  }
+});
+
+
+
+// @desc    Chart Data
+// @route   ADMIN /admin/chart-data
+// @access  Public
+
+export const chartDataController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userJoinStats = await User.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          userCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const postCreationStats = await Post.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+          postCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const jobCreationStats = await Job.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          jobCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const chartData = {
+      userJoinStats,
+      postCreationStats,
+      jobCreationStats,
+    };
+
+    res.json(chartData);
+  }
+);
+
+
+// @desc    Dashboard Stats
+// @route   ADMIN /admin/dashboard-stats
+// @access  Public
+
+export const dashboardStatsController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const totalUsers = await User.countDocuments();
+
+    const totalPosts = await Post.countDocuments();
+
+    const totalJobs  = await Job.countDocuments();
+
+    const totalSales = await PremiumUsers.countDocuments();
+
+    const totalJobsCategories = await JobCategory.countDocuments();
+    const totalReports = await Report.countDocuments();
+    const stats = {
+      totalUsers,
+      totalPosts,
+      totalJobs,
+      totalSales,
+      totalJobsCategories,
+      totalReports,
+    };
+
+
+    res.status(200).json(stats);
+  }
+);

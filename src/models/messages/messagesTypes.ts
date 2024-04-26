@@ -6,6 +6,7 @@ export interface Message {
   text: string;
   createdAt: Date;
   updatedAt: Date;
+  isRead:boolean;
 }
 
 export interface MessageDocument extends Message, Document {}

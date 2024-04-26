@@ -12,52 +12,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMessagesController = exports.addMessageController = exports.findConversationController = exports.getUserConversationController = exports.addConversationController = void 0;
+exports.getUnreadMessagesController = exports.setMessageReadController = exports.getMessagesController = exports.addMessageController = exports.findConversationController = exports.getUserConversationController = exports.addConversationController = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const conversationsModel_1 = __importDefault(require("../models/conversations/conversationsModel"));
 const messagesModel_1 = __importDefault(require("../models/messages/messagesModel"));
 // @desc    Adda new conversation
 // @route   get /chat/add-conversation
 // @access  Public
-const addConversationController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addConversationController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
+    const { senderId, receiverId } = req.body;
+    const existConversation = yield conversationsModel_1.default.findOne({
+        members: { $all: [senderId, receiverId] },
+    }).populate({
+        path: "members",
+        select: "username profileImageUrl ",
+    });
+    if (existConversation) {
+        res.status(200).json(existConversation);
+        return;
+    }
+    const newConversation = new conversationsModel_1.default({
+        members: [senderId, receiverId],
+    });
     try {
-        const { senderId, receiverId } = req.body;
-        const existingConversation = yield conversationsModel_1.default.findOne({
-            members: { $all: [senderId, receiverId] },
+        const savedConversation = yield newConversation.save();
+        const conversation = yield conversationsModel_1.default.findById(savedConversation._id).populate({
+            path: "members",
+            select: "username profileImageUrl ",
         });
-        if (existingConversation) {
-            const conversation = yield conversationsModel_1.default.find({
-                members: { $all: [senderId, receiverId] },
-            }).populate({
-                path: 'members',
-                select: 'username profileImageUrl'
-            });
-            const conversations = yield conversationsModel_1.default.find({
-                members: { $in: [senderId] },
-            }).populate({
-                path: 'members',
-                select: 'username profileImageUrl'
-            });
-            return res.status(200).json({ conversation, conversations });
-        }
-        const newConversation = new conversationsModel_1.default({
-            members: [senderId, receiverId],
-        });
-        const conversation = yield newConversation.save();
-        const conversations = yield conversationsModel_1.default.find({
-            members: { $in: [senderId] },
-        }).populate({
-            path: 'members',
-            select: 'username profileImageUrl'
-        });
-        res.status(200).json({ conversation, conversations });
+        res.status(200).json(conversation);
     }
-    catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+    catch (err) {
+        res.status(500).json(err);
     }
-});
-exports.addConversationController = addConversationController;
+}));
 // @desc    Get conversations of a user
 // @route   get /chat/get-conversation
 // @access  Public
@@ -68,7 +57,7 @@ exports.getUserConversationController = (0, express_async_handler_1.default)((re
         }).populate({
             path: 'members',
             select: 'username profileImageUrl'
-        });
+        }).sort({ updatedAt: -1 });
         res.status(200).json(conversation);
     }
     catch (err) {
@@ -123,6 +112,39 @@ exports.getMessagesController = (0, express_async_handler_1.default)((req, res) 
             path: 'sender',
             select: 'username profileImageUrl'
         });
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(500).json(err);
+    }
+}));
+// @desc    get Message ReadController
+// @route   get /chat/get-message
+// @access  Public
+exports.setMessageReadController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { conversationId, userId } = req.body;
+        console.log(conversationId, userId + "Reading Messages");
+        const messages = yield messagesModel_1.default.updateMany({ conversationId: conversationId, sender: { $ne: userId } }, { $set: { isRead: true } });
+        res.status(200).json(messages);
+    }
+    catch (err) {
+        res.status(500).json(err);
+    }
+}));
+// @desc    get Unread Messages
+// @route   get /chat/get-message
+// @access  Public
+exports.getUnreadMessagesController = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { conversationId, userId } = req.body;
+        console.log(conversationId, userId + "unreadMessages getting....");
+        const messages = yield messagesModel_1.default.find({
+            conversationId: conversationId,
+            sender: { $ne: userId },
+            isRead: false,
+        });
+        console.log(messages);
         res.status(200).json(messages);
     }
     catch (err) {
