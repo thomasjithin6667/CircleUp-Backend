@@ -19,7 +19,7 @@ const userModel_1 = __importDefault(require("../models/user/userModel"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const stripe_1 = __importDefault(require("stripe"));
-const stripe = new stripe_1.default("sk_test_51P2YQySACYjhnZZxm0GvetlVuW5Nl46WV0jvslrojCK4wA5B12ExdxbpAatnNQuov3W1buHTqMFjoDoUD9F6FVJn00z1IdAqVn");
+const stripe = new stripe_1.default("sk_test_51P2lOoSGck1zxwUllJBB2lKFHEPuz1Kvi7n2FhTH6dWPxwTAyuAn36fGpErOXgrfFFyjzc1flqyJp0wDPNmvCjS5004WQeD5dY");
 // @desc    Generate stripe session
 // @route   get /post/get-post
 // @access  Public
@@ -46,8 +46,8 @@ exports.initiatecheckout = (0, express_async_handler_1.default)((req, res) => __
                 }
             ],
             mode: "payment",
-            success_url: "http://circleup.site/premium/payment-success",
-            cancel_url: "http://circleup.site/premium/payment-failed",
+            success_url: process.env.SUCCESS_URL,
+            cancel_url: process.env.CANCEL_URL,
             customer_email: user === null || user === void 0 ? void 0 : user.email,
             billing_address_collection: 'required',
         });
