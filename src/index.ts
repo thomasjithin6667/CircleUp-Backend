@@ -44,7 +44,9 @@ app.use((req, res, next) => {
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
+app.use(express.static('public/'))
+app.use('/api/uploads/',express.static('public/uploads'))
 
 const sessionSecret = process.env.SESSION_SECRET || 'default_secret_key';
 
