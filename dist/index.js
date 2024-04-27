@@ -33,8 +33,7 @@ app.use((req, res, next) => {
 });
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.use(express_1.default.static('public/'));
-app.use('/api/uploads/', express_1.default.static('public/uploads'));
+app.use('/api/uploads', express_1.default.static(path.join(__dirname, 'CircleUp-Backend', 'dist', 'src', 'public', 'uploads')));
 const sessionSecret = process.env.SESSION_SECRET || 'default_secret_key';
 app.use((0, express_session_1.default)({
     secret: sessionSecret,

@@ -44,9 +44,7 @@ app.use((req, res, next) => {
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
-
-app.use(express.static('public/'))
-app.use('/api/uploads/',express.static('public/uploads'))
+app.use('/api/uploads', express.static(path.join(__dirname, 'CircleUp-Backend', 'dist', 'src', 'public', 'uploads')));
 
 const sessionSecret = process.env.SESSION_SECRET || 'default_secret_key';
 
