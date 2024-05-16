@@ -147,40 +147,81 @@ exports.loginUser = (0, express_async_handler_1.default)((req, res) => __awaiter
 // @desc    Google Authentication
 // @route   USER /google-auth
 // @access  Public
+// export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+//   const { username, email, imageUrl } = req.body;
+//   try {
+//     const userExist = await User.findOne({ email });
+//     if (userExist) {
+//       if (userExist.isBlocked) {
+//         res.status(400).json({ message: "User is blocked" });
+//         return;
+//       }
+//       if (userExist) {
+//         const userData= await User.findOne({email},{password:0})
+//         res.json({ message: "Login Sucessful" ,
+//         user:userData,
+//         token:  generateToken(userExist.id),
+//         refreshToken:generateRefreshToken(userExist.id)
+//       });
+//         return;
+//       }
+//     }
+//     const randomPassword = Math.random().toString(36).slice(-8); 
+//     const hashedPassword = await bcrypt.hash(randomPassword, 10);
+//     const newUser = await User.create({
+//       username,
+//       email,
+//       password: hashedPassword, 
+//       profileImageUrl: imageUrl,
+//       isGoogle: true,
+//     });
+//     const userData= await User.findOne({email},{password:0})
+//     res.json({ message: "Login Sucessful" ,
+//       user:userData,
+//       token:  generateToken(userData?.id),
+//       refreshToken:generateRefreshToken(userData?.id)
+//     });
+//   } catch (error) {
+//     console.error("Error in Google authentication:", error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 exports.googleAuth = (0, express_async_handler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, email, imageUrl } = req.body;
     try {
-        const userExist = yield userModel_1.default.findOne({ email });
-        if (userExist) {
-            if (userExist.isBlocked) {
+        let user = yield userModel_1.default.findOne({ email });
+        if (user) {
+            if (user.isBlocked) {
                 res.status(400).json({ message: "User is blocked" });
                 return;
             }
-            if (userExist) {
-                const userData = yield userModel_1.default.findOne({ email }, { password: 0 });
-                res.json({ message: "Login Sucessful",
-                    user: userData,
-                    token: (0, generateToken_1.default)(userExist.id),
-                    refreshToken: (0, generateRefreshToken_1.default)(userExist.id)
-                });
-                return;
-            }
+            const userData = yield userModel_1.default.findOne({ email }, { password: 0 });
+            res.json({
+                message: "Login Successful",
+                user: userData,
+                token: (0, generateToken_1.default)(user.id),
+                refreshToken: (0, generateRefreshToken_1.default)(user.id)
+            });
         }
-        const randomPassword = Math.random().toString(36).slice(-8);
-        const hashedPassword = yield bcryptjs_1.default.hash(randomPassword, 10);
-        const newUser = yield userModel_1.default.create({
-            username,
-            email,
-            password: hashedPassword,
-            profileImageUrl: imageUrl,
-            isGoogle: true,
-        });
-        const userData = yield userModel_1.default.findOne({ email }, { password: 0 });
-        res.json({ message: "Login Sucessful",
-            user: userData,
-            token: (0, generateToken_1.default)(newUser.id),
-            refreshToken: (0, generateRefreshToken_1.default)(newUser.id)
-        });
+        else {
+            const randomPassword = Math.random().toString(36).slice(-8);
+            const hashedPassword = yield bcryptjs_1.default.hash(randomPassword, 10);
+            const newUser = new userModel_1.default({
+                username,
+                email,
+                password: hashedPassword,
+                profileImageUrl: imageUrl,
+                isGoogle: true,
+            });
+            yield newUser.save();
+            const userData = yield userModel_1.default.findOne({ email }, { password: 0 });
+            res.json({
+                message: "Login Successful",
+                user: userData,
+                token: (0, generateToken_1.default)(newUser.id),
+                refreshToken: (0, generateRefreshToken_1.default)(newUser.id)
+            });
+        }
     }
     catch (error) {
         console.error("Error in Google authentication:", error);

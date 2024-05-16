@@ -181,57 +181,105 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 // @access  Public
 
 
+// export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+//   const { username, email, imageUrl } = req.body;
+
+//   try {
+//     const userExist = await User.findOne({ email });
+
+//     if (userExist) {
+//       if (userExist.isBlocked) {
+//         res.status(400).json({ message: "User is blocked" });
+//         return;
+//       }
+
+//       if (userExist) {
+ 
+//         const userData= await User.findOne({email},{password:0})
+
+    
+//         res.json({ message: "Login Sucessful" ,
+      
+//         user:userData,
+//         token:  generateToken(userExist.id),
+//         refreshToken:generateRefreshToken(userExist.id)
+  
+//       });
+//         return;
+//       }
+//     }
+
+//     const randomPassword = Math.random().toString(36).slice(-8); 
+
+//     const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+//     const newUser = await User.create({
+//       username,
+//       email,
+//       password: hashedPassword, 
+//       profileImageUrl: imageUrl,
+//       isGoogle: true,
+//     });
+
+   
+//     const userData= await User.findOne({email},{password:0})
+  
+    
+//     res.json({ message: "Login Sucessful" ,
+      
+//       user:userData,
+//       token:  generateToken(userData?.id),
+//       refreshToken:generateRefreshToken(userData?.id)
+
+//     });
+//   } catch (error) {
+//     console.error("Error in Google authentication:", error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
   const { username, email, imageUrl } = req.body;
 
   try {
-    const userExist = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
-    if (userExist) {
-      if (userExist.isBlocked) {
+    if (user) {
+      if (user.isBlocked) {
         res.status(400).json({ message: "User is blocked" });
         return;
       }
 
-      if (userExist) {
- 
-        const userData= await User.findOne({email},{password:0})
+      const userData = await User.findOne({ email }, { password: 0 });
 
-    
-        res.json({ message: "Login Sucessful" ,
-      
-        user:userData,
-        token:  generateToken(userExist.id),
-        refreshToken:generateRefreshToken(userExist.id)
-  
+      res.json({
+        message: "Login Successful",
+        user: userData,
+        token: generateToken(user.id),
+        refreshToken: generateRefreshToken(user.id)
       });
-        return;
-      }
+    } else {
+      const randomPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+      const newUser = new User({
+        username,
+        email,
+        password: hashedPassword,
+        profileImageUrl: imageUrl,
+        isGoogle: true,
+      });
+
+      await newUser.save();
+
+      const userData = await User.findOne({ email }, { password: 0 });
+
+      res.json({
+        message: "Login Successful",
+        user: userData,
+        token: generateToken(newUser.id),
+        refreshToken: generateRefreshToken(newUser.id)
+      });
     }
-
-    const randomPassword = Math.random().toString(36).slice(-8); 
-
-    const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword, 
-      profileImageUrl: imageUrl,
-      isGoogle: true,
-    });
-
-   
-    const userData= await User.findOne({email},{password:0})
-  
-    
-    res.json({ message: "Login Sucessful" ,
-      
-      user:userData,
-      token:  generateToken(newUser.id),
-      refreshToken:generateRefreshToken(newUser.id)
-
-    });
   } catch (error) {
     console.error("Error in Google authentication:", error);
     res.status(500).json({ message: "Server error" });
